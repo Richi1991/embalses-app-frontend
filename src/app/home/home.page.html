@@ -1,0 +1,54 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Panel General de Embalses</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light">
+  
+  <div class="summary-wrapper">
+    <div class="main-stats-card">
+      
+      <div class="stat-box">
+        <span class="stat-label">VOLUMEN TOTAL CUENCA</span>
+        <span class="stat-value">{{ volumenTotal | number:'1.2-2' }} <small>hm³</small></span>
+      </div>
+
+      <div class="vertical-divider"></div>
+
+      <div class="stat-box">
+        <span class="stat-label">% MEDIO LLENADO</span>
+        <div class="square-tank" [style.--nivel]="porcentajeMedio + '%'">
+          <span class="pct-text">{{ porcentajeMedio | number:'1.1-1' }}%</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div *ngFor="let e of embalses" class="mini-card">
+      
+      <div class="card-header">
+        <h3>{{ e.nombre }}</h3>
+        <div class="trend-mini" [ngClass]="e.tendencia">
+          <ion-icon [name]="e.tendencia === 'subida' ? 'arrow-up' : 'arrow-down'"></ion-icon>
+          <span>{{ e.variacionHM3 | number:'1.3-3' }} hm³</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="square-level-indicator-mini" [style.--nivel]="e.porcentaje + '%'">
+          <span class="pct-text">{{ e.porcentaje }}%</span>
+        </div>
+        
+        <div class="data-mini">
+          <span class="label">VOLUMEN ACTUAL</span>
+          <span class="value">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</ion-content>

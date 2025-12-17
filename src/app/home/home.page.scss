@@ -1,0 +1,153 @@
+/* 1. REJILLA PRINCIPAL */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+/* 2. TARJETAS DE EMBALSE (Unificada) */
+.mini-card {
+  background: white;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-left: 4px solid #eee; // Borde neutro por defecto
+  transition: transform 0.2s ease;
+
+  // Bordes dinámicos según tendencia
+  &:has(.subida) { border-left-color: #2dd36f; }
+  &:has(.bajada) { border-left-color: #eb445a; }
+}
+
+/* 3. CABECERA DE TARJETA */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #2c3e50;
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* 4. INDICADORES DE TENDENCIA (hm3) */
+.trend-mini {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  &.subida { background: #e8f5e9; color: #2e7d32; }
+  &.bajada { background: #ffebee; color: #c62828; }
+
+  ion-icon { margin-right: 2px; font-size: 0.8rem; }
+}
+
+/* 5. CUERPO DE TARJETA Y TANQUE CUADRADO */
+.card-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.square-level-indicator-mini {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 1px solid #cfd8dc;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to top, #004e92 var(--nivel), #ffffff var(--nivel));
+
+  .pct-text {
+    font-weight: 800;
+    font-size: 0.7rem;
+    z-index: 2;
+    mix-blend-mode: difference;
+    color: white;
+  }
+}
+
+.data-mini {
+  display: flex;
+  flex-direction: column;
+  .label { font-size: 0.6rem; color: #95a5a6; text-transform: uppercase; font-weight: 600; }
+  .value { font-size: 0.9rem; font-weight: 700; color: #34495e; }
+}
+
+/* 6. SECCIÓN DE RESUMEN GLOBAL (Limpia) */
+.summary-wrapper {
+  padding: 24px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+
+  .stats-header {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #455a64;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+}
+
+.main-stats-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.stat-box {
+  text-align: center;
+  .stat-label { font-size: 0.65rem; color: #90a4ae; font-weight: 700; display: block; margin-bottom: 4px; }
+  .stat-value { font-size: 1.6rem; font-weight: 900; color: #1a2a3a; }
+}
+
+.square-tank {
+  width: 55px;
+  height: 55px;
+  border-radius: 10px;
+  border: 2px solid #cfd8dc;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to top, #004e92 var(--nivel), #f0f0f0 var(--nivel));
+
+  .pct-text {
+    font-weight: 800;
+    font-size: 0.85rem;
+    z-index: 2;
+    mix-blend-mode: difference;
+    color: white;
+  }
+}
+
+.vertical-divider {
+  width: 1px;
+  height: 40px;
+  background: #eee;
+}

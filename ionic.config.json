@@ -1,0 +1,7 @@
+{
+  "name": "mis-embalses",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
