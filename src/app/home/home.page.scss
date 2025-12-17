@@ -1,9 +1,15 @@
 /* 1. REJILLA PRINCIPAL */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Bajamos el minmax a 140px para que en móviles pequeños quepan 2 columnas si quieres, 
+     o deja 220px si prefieres una sola columna grande */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
   gap: 16px;
   padding: 16px;
+  /* AÑADE ESTO: */
+  width: 100%;
+  height: auto; 
+  contain: content; /* Optimiza el rendimiento del scroll en Ionic */
 }
 
 /* 2. TARJETAS DE EMBALSE (Unificada) */
@@ -150,4 +156,9 @@
   width: 1px;
   height: 40px;
   background: #eee;
+}
+
+/* Espaciado extra al final del contenido para que el scroll respire */
+ion-content {
+  --padding-bottom: 40px;
 }

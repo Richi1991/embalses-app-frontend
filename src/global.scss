@@ -35,3 +35,28 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+/* Fuerza el scroll en el cuerpo de la aplicación */
+html, body {
+  overflow: auto !important;
+  touch-action: pan-y !important;
+  height: 100% !important;
+}
+
+/* Asegura que el contenedor de Ionic no bloquee el scroll */
+ion-content {
+  --overflow: auto;
+  overflow: auto;
+  touch-action: pan-y !important; /* Permite el scroll vertical en móviles */
+}
+
+/* Evita que el "dashboard-grid" colapse o bloquee el gesto */
+.dashboard-grid {
+  display: block; /* Asegura que fluya verticalmente */
+  padding-bottom: 50px; /* Margen extra para que la última tarjeta no se corte */
+}
+
+/* Fix para Safari en iPhone */
+.ios ion-content {
+  -webkit-overflow-scrolling: touch;
+}
