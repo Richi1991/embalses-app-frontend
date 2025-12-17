@@ -18,7 +18,7 @@ export interface Embalse {
 // 2. Asegúrate de que esto tenga EXPORT y el nombre sea idéntico
 export class EmbalseService { 
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/v1/embalses/top-movimientos';
+  private apiUrl = 'https://embalses-api.onrender.com/api/v1/embalses/top-movimientos';
 
   getTopMovimientos(): Observable<Embalse[]> {
     return this.http.get<Embalse[]>(this.apiUrl);
