@@ -4,10 +4,11 @@ import { Observable } from 'rxjs';
 
 export interface Embalse {
   nombre: string;
-  hm3: number;        // Coincide con el DTO Java
+  hm3: number;        // Lo que viene del JSON
+  volumen: number;    // Lo que espera el HTML
   porcentaje: number;
-  variacion: number;  // Valor real en Hm3 calculado en el Back
-  tendencia: 'SUBIDA' | 'BAJADA' | 'ESTABLE' | string; 
+  variacion: number; 
+  tendencia: string;
 }
 
 @Injectable({

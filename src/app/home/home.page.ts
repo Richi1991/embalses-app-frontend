@@ -27,14 +27,15 @@ cargarDatos() {
     next: (data: Embalse[]) => {
       this.embalses = data.map(e => ({
         ...e,
-        // Normalizamos a minúsculas para el CSS y manejamos nulos
+        // Creamos 'volumen' para que el HTML lo encuentre
+        volumen: e.hm3, 
         tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
       })).sort((a, b) => b.hm3 - a.hm3);
 
       this.volumenTotal = data.reduce((acc, e) => acc + e.hm3, 0);
-      const sumaPct = data.reduce((acc, e) => acc + e.porcentaje, 0);
-      this.porcentajeMedio = sumaPct / data.length;
-    }
+      this.porcentajeMedio = data.length > 0 ? (data.reduce((acc, e) => acc + e.porcentaje, 0) / data.length) : 0;
+    },
+    error: (err) => console.error('Error cargando datos', err)
   });
 }
 }
