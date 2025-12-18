@@ -1,4 +1,34 @@
-/node_modules/
-/www/
-/dist/
-.sourcemaps
+# IDEs y Editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Compilación y temporales
+.angular/
+.cache/
+.temp/
+.tmp/
+
+# Entorno y Secretos
+.env
+.env.local
+src/environments/environment.prod.ts  # Opcional: si manejas keys sensibles aquí
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Mobile (Si llegas a usar Capacitor/Cordova)
+/platforms/
+/plugins/
+/screenshots/
+
+node_modules/
+.angular/
+dist/
+www/

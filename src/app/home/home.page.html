@@ -5,10 +5,10 @@
 </ion-header>
 
 <ion-content color="light">
-  
+
   <div class="summary-wrapper">
     <div class="main-stats-card">
-      
+
       <div class="stat-box">
         <span class="stat-label">VOLUMEN TOTAL CUENCA</span>
         <span class="stat-value">{{ volumenTotal | number:'1.2-2' }} <small>hm³</small></span>
@@ -28,12 +28,15 @@
 
   <div class="dashboard-grid">
     <div *ngFor="let e of embalses" class="mini-card">
-      
+
       <div class="card-header">
         <h3>{{ e.nombre }}</h3>
-        <div class="trend-mini" [ngClass]="e.tendencia">
-          <ion-icon [name]="e.tendencia === 'subida' ? 'arrow-up' : 'arrow-down'"></ion-icon>
-          <span>{{ e.variacionHM3 | number:'1.3-3' }} hm³</span>
+        <div class="trend-mini" [ngClass]="e.tendencia.toLowerCase()">
+          <ion-icon [name]="e.tendencia.toLowerCase() === 'subida' ? 'arrow-up' : 
+                   (e.tendencia.toLowerCase() === 'bajada' ? 'arrow-down' : 'remove-outline')">
+          </ion-icon>
+
+          <span>{{ e.variacion | number:'1.3-3' }} hm³</span>
         </div>
       </div>
 
@@ -41,7 +44,7 @@
         <div class="square-level-indicator-mini" [style.--nivel]="e.porcentaje + '%'">
           <span class="pct-text">{{ e.porcentaje }}%</span>
         </div>
-        
+
         <div class="data-mini">
           <span class="label">VOLUMEN ACTUAL</span>
           <span class="value">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>

@@ -25,27 +25,13 @@ public porcentajeMedio: number = 0;
 cargarDatos() {
   this.embalseService.getTopMovimientos().subscribe({
     next: (data: Embalse[]) => {
-      this.embalses = data.map((e: any) => {
-        
-        // 1. Calculamos la variación técnica
-        let cambioHM3 = (e.volumen * (e.variacion || 0)) / 100;
+      this.embalses = data.map(e => ({
+        ...e,
+        // Normalizamos a minúsculas para el CSS y manejamos nulos
+        tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
+      })).sort((a, b) => b.hm3 - a.hm3);
 
-        // 2. FILTRO DE ESTABILIDAD:
-        // Si la variación es extremadamente pequeña (ruido de decimales), 
-        // la forzamos a 0 para que no confunda al usuario.
-        if (Math.abs(cambioHM3) < 0.005) {
-          cambioHM3 = 0;
-        }
-
-        return {
-          ...e,
-          // 3. Redondeamos a 3 decimales fijos para que coincida con la CHS
-          variacionHM3: Number(cambioHM3.toFixed(3))
-        };
-      }).sort((a, b) => b.volumen - a.volumen);
-
-      // Totales
-      this.volumenTotal = data.reduce((acc, e) => acc + e.volumen, 0);
+      this.volumenTotal = data.reduce((acc, e) => acc + e.hm3, 0);
       const sumaPct = data.reduce((acc, e) => acc + e.porcentaje, 0);
       this.porcentajeMedio = sumaPct / data.length;
     }
