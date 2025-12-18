@@ -116,13 +116,13 @@
   }
 }
 
+/* Ajuste extra para la tarjeta de estadísticas */
 .main-stats-card {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: space-around !important;
-  align-items: center !important;
-  min-height: 100px;
-  margin: 10px 5px; /* Margen lateral más pequeño para móviles */
+  margin: 5px 0; /* Reducimos márgenes externos */
+  padding: 15px !important; /* Forzamos un padding interno constante */
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 /* Asegura que el texto no se rompa en dos líneas si no cabe */
@@ -163,15 +163,19 @@
   background: #eee;
 }
 
-/* Espaciado extra al final del contenido para que el scroll respire */
+/* Espaciado corregido para que se vea en móvil y PC */
 ion-content {
+  /* Eliminamos los offsets que pueden empujar el contenido fuera de pantalla */
   --offset-top: 0px !important;
   --padding-top: 0px !important;
-  --padding-bottom: 40px;
+  --padding-bottom: 20px;
 
+  /* Estilo para el contenedor del resumen */
   .container-fluid {
     margin-top: 0;
-    padding-top: 10px; // Un pequeño respiro para que no toque el borde del móvil
+    padding: 10px 15px; /* Añadimos padding lateral para que no toque los bordes del móvil */
+    display: block;
+    width: 100%;
   }
 }
 
