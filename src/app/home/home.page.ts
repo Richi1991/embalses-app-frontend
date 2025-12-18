@@ -21,6 +21,7 @@ export class HomePage implements OnInit {
   // Añade estas variables dentro de la clase HomePage
 public volumenTotal: number = 0;
 public porcentajeMedio: number = 0;
+totalVariacion: number = 0;
 
 cargarDatos() {
   this.embalseService.getTopMovimientos().subscribe({
@@ -34,6 +35,8 @@ cargarDatos() {
 
       this.volumenTotal = data.reduce((acc, e) => acc + e.hm3, 0);
       this.porcentajeMedio = data.length > 0 ? (data.reduce((acc, e) => acc + e.porcentaje, 0) / data.length) : 0;
+      this.totalVariacion = data.reduce((acc, e) => acc + (e.variacion || 0), 0);
+      
     },
     error: (err) => console.error('Error cargando datos', err)
   });

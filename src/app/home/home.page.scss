@@ -161,5 +161,18 @@
 
 /* Espaciado extra al final del contenido para que el scroll respire */
 ion-content {
+  --offset-top: 0px !important;
+  --padding-top: 0px !important;
   --padding-bottom: 40px;
+
+  .container-fluid {
+    margin-top: 0;
+    padding-top: 10px; // Un pequeño respiro para que no toque el borde del móvil
+  }
+}
+
+// Para que el diseño de las cards sea consistente con el total
+.main-stats-card {
+  margin: 10px;
+  border-radius: 12px;
 }
