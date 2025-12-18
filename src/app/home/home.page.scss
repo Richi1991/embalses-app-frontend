@@ -118,11 +118,18 @@
 
 /* Ajuste extra para la tarjeta de estadísticas */
 .main-stats-card {
-  margin: 5px 0; /* Reducimos márgenes externos */
-  padding: 15px !important; /* Forzamos un padding interno constante */
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  min-height: 90px; /* Altura mínima pero flexible */
+  height: auto !important; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible !important; /* Importante para que no corte la variación */
+}
+
+/* Elimina cualquier margen negativo que pueda estar subiendo el texto */
+h2 {
+  margin-top: 0 !important;
+  line-height: 1.2;
 }
 
 /* Asegura que el texto no se rompa en dos líneas si no cabe */
