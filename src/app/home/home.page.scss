@@ -117,13 +117,17 @@
 }
 
 .main-stats-card {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-around !important;
+  align-items: center !important;
+  min-height: 100px;
+  margin: 10px 5px; /* Margen lateral más pequeño para móviles */
+}
+
+/* Asegura que el texto no se rompa en dos líneas si no cabe */
+.stat-value, h2 {
+  white-space: nowrap;
 }
 
 .stat-box {
