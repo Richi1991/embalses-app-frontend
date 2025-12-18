@@ -1,27 +1,25 @@
 <ion-content color="light">
   <div class="container-fluid pt-2"> 
-    <div class="main-stats-card shadow-sm" style="background: white; border-radius: 15px; padding: 10px; width: 100%;">
+    <div class="main-stats-card shadow-sm" style="background: white; border-radius: 15px; padding: 12px; width: 100%; min-height: 110px;">
       <div class="row align-items-center text-center g-0 w-100">
         
         <div class="col-6 border-end">
-          <p class="text-uppercase text-muted fw-bold mb-0" style="font-size: 0.6rem; letter-spacing: 0.5px;">Volumen Total Cuenca</p>
-          
-          <div class="d-flex justify-content-center align-items-baseline my-1">
-            <h2 class="fw-bold mb-0" style="font-size: 1.4rem; color: #1a2a3a;">{{ volumenTotal | number:'1.2-2' }} <small style="font-size: 0.7rem;">hm³</small></h2>
+          <p class="text-uppercase text-muted fw-bold mb-0" style="font-size: 0.65rem;">Volumen Total Cuenca</p>
+          <div class="d-flex justify-content-center align-items-baseline">
+            <h2 class="fw-bold mb-0" style="font-size: 1.5rem; color: #1a2a3a;">{{ volumenTotal | number:'1.2-2' }} <small style="font-size: 0.7rem;">hm³</small></h2>
           </div>
-
           <div [ngClass]="totalVariacion >= 0 ? 'text-success' : 'text-danger'" 
-               style="font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px;">
+               style="font-size: 0.8rem; font-weight: 800; margin-top: 2px;">
             {{ totalVariacion > 0 ? '+' : '' }}{{ totalVariacion | number:'1.3-3' }} hm³
-            <span style="font-size: 0.7rem;">{{ totalVariacion >= 0 ? '▲' : '▼' }}</span>
+            <span>{{ totalVariacion >= 0 ? '▲' : '▼' }}</span>
           </div>
         </div>
 
         <div class="col-6">
-          <p class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.6rem; letter-spacing: 0.5px;">% Llenado</p>
+          <p class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.65rem;">% Llenado</p>
           <div class="d-flex justify-content-center">
-            <div class="square-tank" [style.--nivel]="porcentajeMedio + '%'" style="width: 45px; height: 45px;">
-              <span class="pct-text" style="font-size: 0.75rem;">{{ porcentajeMedio | number:'1.1-1' }}%</span>
+            <div class="square-tank" [style.--nivel]="porcentajeMedio + '%'" style="width: 48px; height: 48px;">
+              <span class="pct-text" style="font-size: 0.8rem;">{{ porcentajeMedio | number:'1.1-1' }}%</span>
             </div>
           </div>
         </div>
@@ -32,16 +30,13 @@
 
   <div class="dashboard-grid">
     <div *ngFor="let e of embalses" class="mini-card">
-
       <div class="card-header">
         <h3>{{ e.nombre }}</h3>
         <div class="trend-mini" [ngClass]="e.tendencia">
-          <ion-icon
-            [name]="e.tendencia === 'subida' ? 'arrow-up-outline' : (e.tendencia === 'bajada' ? 'arrow-down-outline' : 'remove-outline')"></ion-icon>
+          <ion-icon [name]="e.tendencia === 'subida' ? 'arrow-up-outline' : (e.tendencia === 'bajada' ? 'arrow-down-outline' : 'remove-outline')"></ion-icon>
           <span>{{ e.variacion | number:'1.3-3' }} hm³</span>
         </div>
       </div>
-
       <div class="card-body">
         <div class="square-level-indicator-mini" [style.--nivel]="e.porcentaje + '%'">
           <span class="pct-text">{{ e.porcentaje }}%</span>
@@ -51,7 +46,6 @@
           <span class="value">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
         </div>
       </div>
-
     </div>
   </div>
 </ion-content>
