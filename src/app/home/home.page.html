@@ -1,22 +1,18 @@
 <ion-content color="light">
-
   <div class="container-fluid pt-2"> 
-    <div class="main-stats-card shadow-sm" style="background: white; border-radius: 15px; padding: 20px;">
-      <div class="row align-items-center text-center">
-        
+    <div class="main-stats-card shadow-sm">
+      <div class="row align-items-center text-center w-100">
         <div class="col-6 border-end">
           <p class="text-uppercase text-muted small fw-bold mb-1">Volumen Total Cuenca</p>
           <div class="d-flex justify-content-center align-items-baseline">
             <h2 class="fw-bold mb-0" style="font-size: 1.8rem;">{{ volumenTotal | number:'1.2-2' }} <small>hm³</small></h2>
           </div>
           <span class="badge rounded-pill mt-2" 
-                [ngClass]="totalVariacion >= 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
-                style="font-size: 0.9rem; padding: 8px 12px;">
+                [ngClass]="totalVariacion >= 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
             {{ totalVariacion > 0 ? '+' : '' }}{{ totalVariacion | number:'1.3-3' }} hm³
             {{ totalVariacion >= 0 ? '▲' : '▼' }}
           </span>
         </div>
-
         <div class="col-6">
           <p class="text-uppercase text-muted small fw-bold mb-1">% Llenado</p>
           <div class="d-flex justify-content-center">
@@ -25,12 +21,28 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 
   <div class="dashboard-grid">
-     </div>
-
+    <div *ngFor="let e of embalses" class="mini-card">
+      <div class="card-header">
+        <h3>{{ e.nombre }}</h3>
+        <div class="trend-mini" [ngClass]="e.tendencia">
+          <ion-icon [name]="e.tendencia === 'subida' ? 'arrow-up-outline' : (e.tendencia === 'bajada' ? 'arrow-down-outline' : 'remove-outline')"></ion-icon>
+          <span>{{ e.variacion | number:'1.3-3' }} hm³</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="square-level-indicator-mini" [style.--nivel]="e.porcentaje + '%'">
+          <span class="pct-text">{{ e.porcentaje }}%</span>
+        </div>
+        <div class="data-mini">
+          <span class="label">VOLUMEN ACTUAL</span>
+          <span class="value">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+        </div>
+      </div>
+    </div>
+  </div>
 </ion-content>
