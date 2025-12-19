@@ -18,41 +18,46 @@
         </div>
       </div>
 
-      <div class="chart-body" style="position: relative; overflow: hidden;">
+      <div class="chart-body">
         <canvas id="evolutionChart"></canvas>
       </div>
-    </div> <div class="fintech-card">
-      <div class="card-title subidas">
-        <ion-icon name="trending-up-outline"></ion-icon>
-        <span>Top 5 Subidas</span>
+    </div>
+
+    <div class="cards-wrapper">
+      <div class="fintech-card">
+        <div class="card-title subidas">
+          <ion-icon name="trending-up-outline"></ion-icon>
+          <span>Top 5 Subidas</span>
+        </div>
+        <div *ngFor="let e of topSubidas; let i = index" class="fintech-row">
+          <div class="rank">{{ i + 1 }}</div>
+          <div class="info">
+            <span class="nombre">{{ e.nombre }}</span>
+            <span class="subtext">Cuenca del Segura</span>
+          </div>
+          <div class="stats">
+            <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+            <span class="badge positive">+{{ e.variacion | number:'1.3-3' }}</span>
+          </div>
+        </div>
       </div>
 
-      <div *ngFor="let e of topSubidas; let i = index" class="fintech-row">
-        <div class="rank">{{ i + 1 }}</div>
-        <div class="info">
-          <span class="nombre">{{ e.nombre }}</span>
-          <span class="subtext">Cuenca del Segura</span>
+      <div class="fintech-card">
+        <div class="card-title bajadas">
+          <ion-icon name="trending-down-outline"></ion-icon>
+          <span>Top 5 Bajadas</span>
         </div>
-        <div class="stats">
-          <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
-          <span class="badge positive">+{{ e.variacion | number:'1.3-3' }}</span>
-        </div>
-      </div>
-    </div> <div class="fintech-card">
-      <div class="card-title bajadas">
-        <ion-icon name="trending-down-outline"></ion-icon>
-        <span>Top 5 Bajadas</span>
-      </div>
-
-      <div *ngFor="let e of topBajadas; let i = index" class="fintech-row">
-        <div class="rank">{{ i + 1 }}</div>
-        <div class="info">
-          <span class="nombre">{{ e.nombre }}</span>
-          <span class="subtext">Cuenca del Segura</span>
-        </div>
-        <div class="stats">
-          <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
-          <span class="badge negative">{{ e.variacion | number:'1.3-3' }}</span>
+        <div *ngFor="let e of topBajadas; let i = index" class="fintech-row">
+          <div class="rank">{{ i + 1 }}</div>
+          <div class="info">
+            <span class="nombre">{{ e.nombre }}</span>
+            <span class="subtext">Cuenca del Segura</span>
+          </div>
+          <div class="stats">
+            <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+            <span class="badge negative">{{ e.variacion | number:'1.3-3' }}</span>
+          </div>
         </div>
       </div>
-    </div> </div> </ion-content>
+    </div> </div>
+</ion-content>
