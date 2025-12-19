@@ -11,6 +11,13 @@ export interface Embalse {
   tendencia: string;
 }
 
+export interface HistoricoCuenca {
+  volumenTotal: number;        
+  porcentaje: number;
+  fechaRegistro: Date;
+  
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -20,8 +27,13 @@ export class EmbalseService {
   // Verifica si tu Controller tiene el prefijo /v1. Si no, usa:
   // https://embalses-api.onrender.com/api/embalses/top-movimientos
   private apiUrl = 'https://embalses-api.onrender.com/api/embalses/top-movimientos';
+  private apiUrlHistoricoCuenca = 'https://embalses-api.onrender.com/api/embalses/historico-cuenca';
 
   getTopMovimientos(): Observable<Embalse[]> {
     return this.http.get<Embalse[]>(this.apiUrl);
+  }
+
+  getHistoricoCuencaSeguraList(): Observable<HistoricoCuenca[]> {
+    return this.http.get<HistoricoCuenca[]>(this.apiUrlHistoricoCuenca);
   }
 }

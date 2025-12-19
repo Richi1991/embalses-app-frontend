@@ -1,29 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
-import {
-  Chart,
-  LineController,
-  LineElement,
-  PointElement,
-  LinearScale,
-  Title,
-  CategoryScale,
-  Filler,
-  Tooltip,
-  Legend
-} from 'chart.js';
-
-// Registramos todos los componentes necesarios, especialmente CategoryScale
-Chart.register(
-  LineController,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Title,
-  Filler,
-  Tooltip,
-  Legend
-);
+import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, Filler, Tooltip, Legend } from 'chart.js';
+Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Title, Filler, Tooltip, Legend);
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { EmbalseService, Embalse } from '../services/embalse.service';
@@ -58,10 +35,21 @@ export class HomePage implements OnInit {
     addIcons({ arrowUpOutline, arrowDownOutline, removeOutline });
   }
 
+  private historicoCompleto: any[] = [];
+
   ngAfterViewInit() {
     // Esperamos 300ms para que la tarjeta gris se estire en pantalla
     setTimeout(() => {
-      this.initChart();
+
+      this.embalseService.getHistoricoCuencaSeguraList().subscribe({
+        next: (datos) => {
+          this.historicoCompleto = datos;
+          this.updateChart('1D');
+        },
+        error: (err) => {
+          console.error("Error al obtener el histórico", err);
+        }
+      });
     }, 300);
   }
 
@@ -69,34 +57,73 @@ export class HomePage implements OnInit {
     this.cargarDatos();
   }
 
-  // Método que faltaba para actualizar el gráfico
   updateChart(selectedFilter: string) {
-    this.filter = selectedFilter;
+    this.filter = selectedFilter; // Para que el botón cambie a clase .active
 
-    // Aquí podrías llamar a tu servicio para traer datos nuevos según el filtro
-    // Por ahora, simulamos un cambio de datos
-    const newData = selectedFilter === '1D' ? [265, 266, 267] : [240, 250, 267];
+    if (!this.historicoCompleto || this.historicoCompleto.length === 0) return;
 
-    this.chart.data.datasets[0].data = newData;
-    this.chart.update();
+    const ahora = new Date();
+    let fechaLimite = new Date();
+
+    switch (selectedFilter) {
+      case '1D':
+        // Desde las 00:00 de hoy
+        fechaLimite.setHours(0, 0, 0, 0);
+        break;
+      case '1M':
+        // Hace 30 días
+        fechaLimite.setDate(ahora.getDate() - 30);
+        break;
+      case '3M':
+        // Hace 90 días
+        fechaLimite.setDate(ahora.getDate() - 90);
+        break;
+      case 'YTD':
+        // Desde el 1 de enero del año actual
+        fechaLimite = new Date(ahora.getFullYear(), 0, 1);
+        break;
+    }
+
+    // Filtramos el array maestro
+    const datosFiltrados = this.historicoCompleto.filter(item => {
+      const fechaItem = new Date(item.fechaRegistro);
+      return fechaItem >= fechaLimite;
+    });
+
+    // Llamamos a initChart con los datos recortados
+    this.initChart(datosFiltrados);
   }
 
-  initChart() {
+  initChart(datosReales: any[]) {
     const canvas = document.getElementById('evolutionChart') as HTMLCanvasElement;
-    if (!canvas) {
-      console.error("No se encontró el canvas 'evolutionChart'");
-      return;
-    }
+    if (!canvas || !datosReales) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Creamos el degradado verde neón (efecto "glow")
+    const labels = datosReales.map(item => {
+      const fecha = new Date(item.fechaRegistro);
+
+      if (this.filter === '1D') {
+        // Si filtramos por día, queremos ver la hora: 14:30
+        return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (this.filter === '1M' || this.filter === '3M') {
+        // Si filtramos por meses, queremos ver el día y mes: 19 Dic
+        return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
+      } else if (this.filter === 'YTD') {
+        // Para YTD, devolvemos solo el mes: "ene", "feb", "mar"...
+        return fecha.toLocaleDateString('es-ES', { month: 'short' });
+      } else {
+        return fecha.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+      }
+    });
+
+    const valores = datosReales.map(item => item.volumenTotal);
+
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(0, 255, 132, 0.2)');
     gradient.addColorStop(1, 'rgba(0, 255, 132, 0)');
 
-    // Si ya existía un gráfico, lo destruimos para evitar errores
     if (this.chart) {
       this.chart.destroy();
     }
@@ -104,9 +131,9 @@ export class HomePage implements OnInit {
     this.chart = new Chart(canvas, {
       type: 'line',
       data: {
-        labels: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:30'],
+        labels: labels,
         datasets: [{
-          data: [267.01, 267.03, 267.02, 267.05, 267.04, 267.06, 267.04, 267.05, 267.04],
+          data: valores,
           borderColor: '#00ff84',
           borderWidth: 2,
           fill: true,
@@ -120,29 +147,39 @@ export class HomePage implements OnInit {
         maintainAspectRatio: false,
         scales: {
           x: {
-            type: 'category', // Forzamos el tipo de escala que daba error
+            type: 'category',
             grid: { display: false },
             ticks: {
               color: '#848e9c',
-              maxRotation: 45, // Rota las horas si no caben
-              minRotation: 0,
-              autoSkip: true,   // Oculta algunas etiquetas si hay muchas
-              maxTicksLimit: 6  // Limita a 6 etiquetas en el móvil para que no se amontonen
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 5 // Menos etiquetas para un look más limpio
             }
           },
           y: {
-            type: 'linear', // Escala numérica
+            type: 'linear',
             position: 'right',
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#848e9c' }
+            ticks: {
+              color: '#848e9c',
+              callback: (value) => value + ' hm³' // Añade la unidad al eje
+            }
           }
         },
         plugins: {
-          legend: { display: false }
+          legend: { display: false },
+          // Sugerencia estética: añade un tooltip personalizado
+          tooltip: {
+            backgroundColor: '#1e2329',
+            titleColor: '#00ff84',
+            bodyColor: '#fff',
+            displayColors: false
+          }
         }
       }
-    });
+    })
   }
+
   cargarDatos() {
     this.embalseService.getTopMovimientos().subscribe({
       next: (data: Embalse[]) => {
