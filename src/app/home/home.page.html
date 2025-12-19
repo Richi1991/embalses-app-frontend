@@ -1,51 +1,58 @@
-<ion-content color="light">
-  <div class="container-fluid pt-2"> 
-    <div class="main-stats-card shadow-sm" style="background: white; border-radius: 15px; padding: 12px; width: 100%; min-height: 110px;">
-      <div class="row align-items-center text-center g-0 w-100">
-        
-        <div class="col-6 border-end">
-          <p class="text-uppercase text-muted fw-bold mb-0" style="font-size: 0.65rem;">Volumen Total Cuenca</p>
-          <div class="d-flex justify-content-center align-items-baseline">
-            <h2 class="fw-bold mb-0" style="font-size: 1.5rem; color: #1a2a3a;">{{ volumenTotal | number:'1.2-2' }} <small style="font-size: 0.7rem;">hm³</small></h2>
-          </div>
-          <div [ngClass]="totalVariacion >= 0 ? 'text-success' : 'text-danger'" 
-               style="font-size: 0.8rem; font-weight: 800; margin-top: 2px;">
-            {{ totalVariacion > 0 ? '+' : '' }}{{ totalVariacion | number:'1.3-3' }} hm³
-            <span>{{ totalVariacion >= 0 ? '▲' : '▼' }}</span>
+<ion-content style="--background: #0b0e11;">
+  <div class="fintech-container">
+
+    <div class="chart-main-card">
+      <div class="chart-header">
+        <div class="info">
+          <h2>Volumen Total Cuenca del Segura</h2>
+          <div class="main-value">
+            {{ volumenTotal | number:'1.2-2' }} <span>hm³</span>
+            <small class="variation positive">+1.08%</small>
           </div>
         </div>
-
-        <div class="col-6">
-          <p class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.65rem;">% Llenado</p>
-          <div class="d-flex justify-content-center">
-            <div class="square-tank" [style.--nivel]="porcentajeMedio + '%'" style="width: 48px; height: 48px;">
-              <span class="pct-text" style="font-size: 0.8rem;">{{ porcentajeMedio | number:'1.1-1' }}%</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <div class="dashboard-grid">
-    <div *ngFor="let e of embalses" class="mini-card">
-      <div class="card-header">
-        <h3>{{ e.nombre }}</h3>
-        <div class="trend-mini" [ngClass]="e.tendencia">
-          <ion-icon [name]="e.tendencia === 'subida' ? 'arrow-up-outline' : (e.tendencia === 'bajada' ? 'arrow-down-outline' : 'remove-outline')"></ion-icon>
-          <span>{{ e.variacion | number:'1.3-3' }} hm³</span>
+        <div class="time-filters">
+          <button (click)="updateChart('1D')" [class.active]="filter === '1D'">1D</button>
+          <button (click)="updateChart('1M')" [class.active]="filter === '1M'">1M</button>
+          <button (click)="updateChart('3M')" [class.active]="filter === '3M'">3M</button>
+          <button (click)="updateChart('YTD')" [class.active]="filter === 'YTD'">YTD</button>
         </div>
       </div>
-      <div class="card-body">
-        <div class="square-level-indicator-mini" [style.--nivel]="e.porcentaje + '%'">
-          <span class="pct-text">{{ e.porcentaje }}%</span>
+
+      <div class="chart-body">
+        <canvas id="evolutionChart"></canvas>
+      </div>
+    </div> <div class="fintech-card">
+      <div class="card-title subidas">
+        <ion-icon name="trending-up-outline"></ion-icon>
+        <span>Top 5 Subidas</span>
+      </div>
+
+      <div *ngFor="let e of topSubidas; let i = index" class="fintech-row">
+        <div class="rank">{{ i + 1 }}</div>
+        <div class="info">
+          <span class="nombre">{{ e.nombre }}</span>
+          <span class="subtext">Cuenca del Segura</span>
         </div>
-        <div class="data-mini">
-          <span class="label">VOLUMEN ACTUAL</span>
-          <span class="value">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+        <div class="stats">
+          <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+          <span class="badge positive">+{{ e.variacion | number:'1.3-3' }}</span>
         </div>
       </div>
-    </div>
-  </div>
-</ion-content>
+    </div> <div class="fintech-card">
+      <div class="card-title bajadas">
+        <ion-icon name="trending-down-outline"></ion-icon>
+        <span>Top 5 Bajadas</span>
+      </div>
+
+      <div *ngFor="let e of topBajadas; let i = index" class="fintech-row">
+        <div class="rank">{{ i + 1 }}</div>
+        <div class="info">
+          <span class="nombre">{{ e.nombre }}</span>
+          <span class="subtext">Cuenca del Segura</span>
+        </div>
+        <div class="stats">
+          <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+          <span class="badge negative">{{ e.variacion | number:'1.3-3' }}</span>
+        </div>
+      </div>
+    </div> </div> </ion-content>
