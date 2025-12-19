@@ -122,7 +122,13 @@ export class HomePage implements OnInit {
           x: {
             type: 'category', // Forzamos el tipo de escala que daba error
             grid: { display: false },
-            ticks: { color: '#848e9c' }
+            ticks: {
+              color: '#848e9c',
+              maxRotation: 45, // Rota las horas si no caben
+              minRotation: 0,
+              autoSkip: true,   // Oculta algunas etiquetas si hay muchas
+              maxTicksLimit: 6  // Limita a 6 etiquetas en el móvil para que no se amontonen
+            }
           },
           y: {
             type: 'linear', // Escala numérica
