@@ -6,10 +6,14 @@
         <div class="info">
           <h2>Volumen Total Cuenca del Segura</h2>
           <div class="main-value">
-            {{ volumenTotal | number:'1.2-2' }} <span>hm³</span>
-            <small class="variation positive">+1.08%</small>
+            {{ volumenTotalHeader | number:'1.2-2' }} <span>hm³</span>
+
+            <small [class]="tendenciaPositiva ? 'variation positive' : 'variation negative'">
+              {{ tendenciaPositiva ? '+' : '' }}{{ porcentajeVariacion | number:'1.2-2' }}%
+            </small>
           </div>
         </div>
+
         <div class="time-filters">
           <button (click)="updateChart('1D')" [class.active]="filter === '1D'">1D</button>
           <button (click)="updateChart('1M')" [class.active]="filter === '1M'">1M</button>
@@ -59,5 +63,6 @@
           </div>
         </div>
       </div>
-    </div> </div>
+    </div>
+  </div>
 </ion-content>

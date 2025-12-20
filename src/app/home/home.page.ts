@@ -29,13 +29,17 @@ export class HomePage implements OnInit {
   public filter: string = '1D'; // Declaramos la propiedad que faltaba
   public volumenTotal: number = 0;
   public porcentajeMedio: number = 0;
+  public porcentajeTotal: number = 0;
+  public porcentajeVariacion: number = 0;
   public totalVariacion: number = 0;
+  private historicoCompleto: any[] = [];
+  public volumenTotalHeader: number = 0;
+  public porcentajeHeader: number = 0;
+  public tendenciaPositiva: boolean = true;
 
   constructor() {
     addIcons({ arrowUpOutline, arrowDownOutline, removeOutline });
   }
-
-  private historicoCompleto: any[] = [];
 
   ngAfterViewInit() {
     // Esperamos 300ms para que la tarjeta gris se estire en pantalla
@@ -89,6 +93,25 @@ export class HomePage implements OnInit {
       const fechaItem = new Date(item.fechaRegistro);
       return fechaItem >= fechaLimite;
     });
+
+    if (datosFiltrados.length > 0) {
+      const primero = datosFiltrados[0];
+      const ultimo = datosFiltrados[datosFiltrados.length - 1];
+
+      // 1. El valor principal es el último dato conocido
+      this.volumenTotalHeader = ultimo.volumenTotal;
+
+      // 2. Calculamos la variación porcentual entre el inicio del periodo y el final
+      // Fórmula: ((Actual - Inicial) / Inicial) * 100
+      if (primero.volumenTotal !== 0) {
+        this.porcentajeVariacion = ((ultimo.volumenTotal - primero.volumenTotal) / primero.volumenTotal) * 100;
+      } else {
+        this.porcentajeVariacion = 0;
+      }
+
+      // 3. Determinamos si es positivo para el color (verde/rojo)
+      this.tendenciaPositiva = this.porcentajeVariacion >= 0;
+    }
 
     // Llamamos a initChart con los datos recortados
     this.initChart(datosFiltrados);

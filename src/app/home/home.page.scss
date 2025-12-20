@@ -10,6 +10,13 @@
   box-sizing: border-box;
 }
 
+.variation {
+  font-weight: bold;
+  margin-left: 10px;
+  &.positive { color: #00ff84; } // Verde neón
+  &.negative { color: #ff4d4d; } // Rojo
+}
+
 // ESTILOS DEL GRÁFICO (Agrupados dentro de su tarjeta)
 .chart-main-card {
   background: #1e222d; //
