@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { EmbalseService, Embalse } from '../services/embalse.service';
 import { addIcons } from 'ionicons';
 import { trendingUpOutline, trendingDownOutline } from 'ionicons/icons';
+import { Router } from '@angular/router';
 
 addIcons({
   'trending-up-outline': trendingUpOutline,
@@ -33,13 +34,15 @@ export class HomePage implements OnInit {
   public porcentajeVariacion: number = 0;
   public totalVariacion: number = 0;
   private historicoCompleto: any[] = [];
+  private historicoCompletoEmbalse: any[] = [];
   public volumenTotalHeader: number = 0;
   public porcentajeHeader: number = 0;
   public tendenciaPositiva: boolean = true;
 
-  constructor() {
+  constructor(private router: Router) {
     addIcons({ arrowUpOutline, arrowDownOutline, removeOutline });
   }
+
 
   ngAfterViewInit() {
     // Esperamos 300ms para que la tarjeta gris se estire en pantalla
@@ -69,44 +72,7 @@ export class HomePage implements OnInit {
     const ahora = new Date();
     let fechaLimite = new Date();
 
-    switch (selectedFilter) {
-      case '1D':
-        // Desde las 00:00 de hoy
-        fechaLimite.setHours(0, 0, 0, 0);
-        break;
-      case '1M':
-        // Hace 30 días
-        fechaLimite.setDate(ahora.getDate() - 30);
-        break;
-      case '3M':
-        // Hace 90 días
-        fechaLimite.setDate(ahora.getDate() - 90);
-        break;
-      case 'YTD':
-        // Desde el 1 de enero del año actual
-        fechaLimite = new Date(ahora.getFullYear(), 0, 1);
-        break;
-      case '1A':
-        // Desde hace 1 año
-        fechaLimite.setDate(ahora.getDate() - 365);
-        break;
-      case '2A':
-        // Desde hace 2 año
-        fechaLimite.setDate(ahora.getDate() - 730);
-        break;
-      case '3A':
-        // Desde hace 3 año
-        fechaLimite.setDate(ahora.getDate() - 1095);
-        break;
-      case '5A':
-        // Desde hace 5 año
-        fechaLimite.setDate(ahora.getDate() - 1825);
-        break;
-      case '10A':
-        // Desde hace 5 año
-        fechaLimite.setDate(ahora.getDate() - 3650);
-        break;
-    }
+    fechaLimite = this.calcularFechaLimite(selectedFilter);
 
     // Filtramos el array maestro
     const datosFiltrados = this.historicoCompleto.filter(item => {
@@ -137,6 +103,60 @@ export class HomePage implements OnInit {
     this.initChart(datosFiltrados);
   }
 
+  updateChartTopSubidas(selectedFilter: string) {
+    this.filter = selectedFilter; // Para que el botón cambie a clase .active
+
+    //this.historicoCompletoEmbalse
+  }
+
+  abrirHistoricoEmbalse(idEmbalse: number) {
+    this.router.navigate(['/embalse-historico', idEmbalse]);
+  }
+
+  private calcularFechaLimite(selectedFilter: string): Date {
+  const ahora = new Date();
+  const fecha = new Date();
+
+  switch (selectedFilter) {
+    case '1D':
+      fecha.setHours(0, 0, 0, 0);
+      break;
+    case '1S':
+      fecha.setDate(ahora.getDate() - 7);
+      break;
+    case '1M':
+      fecha.setDate(ahora.getDate() - 30);
+      break;
+    case '3M':
+      fecha.setDate(ahora.getDate() - 90);
+      break;
+    case 'YTD':
+      return new Date(ahora.getFullYear(), 0, 1);
+    case '1A':
+      fecha.setDate(ahora.getDate() - 365);
+      break;
+    case '2A':
+      fecha.setDate(ahora.getDate() - 730);
+      break;
+    case '3A':
+      fecha.setDate(ahora.getDate() - 1095);
+      break;
+    case '5A':
+      fecha.setDate(ahora.getDate() - 1825);
+      break;
+    case '10A':
+      fecha.setDate(ahora.getDate() - 3650);
+      break;
+    case 'ALL':
+      // Usamos una fecha garantizada anterior a cualquier registro
+      return new Date(1900, 0, 1); 
+    default:
+      // Por defecto 1 año si algo falla
+      fecha.setDate(ahora.getDate() - 365);
+  }
+  return fecha;
+}
+
   initChart(datosReales: any[]) {
     const canvas = document.getElementById('evolutionChart') as HTMLCanvasElement;
     if (!canvas || !datosReales) return;
@@ -150,6 +170,9 @@ export class HomePage implements OnInit {
       if (this.filter === '1D') {
         // Si filtramos por día, queremos ver la hora: 14:30
         return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (this.filter === '1S') {
+        // Si filtramos por la última semana vemos los días y el mes
+        return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
       } else if (this.filter === '1M' || this.filter === '3M') {
         // Si filtramos por meses, queremos ver el día y mes: 19 Dic
         return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
@@ -170,6 +193,9 @@ export class HomePage implements OnInit {
         return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
       } else if (this.filter === '10A') {
         // Para 10A, devolvemos mes y anio desde hace 10 años
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      } else if (this.filter === 'ALL') {
+        // Desde el principio, devolvemos mes y anio desde hace 20 años
         return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
       }else {
         return fecha.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
@@ -244,6 +270,7 @@ export class HomePage implements OnInit {
         // 1. Normalizamos los datos (mapeo que ya tenías)
         const datosNormalizados = data.map(e => ({
           ...e,
+          idEmbalse: e.idEmbalse,
           volumen: e.hm3,
           tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
         }));

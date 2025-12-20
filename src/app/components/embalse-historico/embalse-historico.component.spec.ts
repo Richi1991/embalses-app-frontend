@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { EmbalseListComponent } from './embalse-list.component';
+import { EmbalseHistoricoComponent } from './embalse-historico.component';
 
-describe('EmbalseListComponent', () => {
-  let component: EmbalseListComponent;
-  let fixture: ComponentFixture<EmbalseListComponent>;
+describe('EmbalseHistoricoComponent', () => {
+  let component: EmbalseHistoricoComponent;
+  let fixture: ComponentFixture<EmbalseHistoricoComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ EmbalseListComponent ],
+      declarations: [ EmbalseHistoricoComponent ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(EmbalseListComponent);
+    fixture = TestBed.createComponent(EmbalseHistoricoComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

@@ -16,6 +16,7 @@
 
         <div class="time-filters">
           <button (click)="updateChart('1D')" [class.active]="filter === '1D'">1D</button>
+          <button (click)="updateChart('1S')" [class.active]="filter === '1S'">1S</button>
           <button (click)="updateChart('1M')" [class.active]="filter === '1M'">1M</button>
           <button (click)="updateChart('3M')" [class.active]="filter === '3M'">3M</button>
           <button (click)="updateChart('YTD')" [class.active]="filter === 'YTD'">YTD</button>
@@ -24,6 +25,7 @@
           <button (click)="updateChart('3A')" [class.active]="filter === '3A'">3A</button>
           <button (click)="updateChart('5A')" [class.active]="filter === '5A'">5A</button>
           <button (click)="updateChart('10A')" [class.active]="filter === '10A'">10A</button>
+          <button (click)="updateChart('ALL')" [class.active]="filter === 'ALL'">ALL</button>
         </div>
       </div>
 
@@ -47,7 +49,9 @@
         <div *ngFor="let e of topSubidas; let i = index" class="fintech-row">
           <div class="info-group">
             <div class="rank">{{ i + 1 }}</div>
-            <span class="nombre">{{ e.nombre }}</span>
+            <span class="nombre" (click)="abrirHistoricoEmbalse(e.idEmbalse)">
+              {{ e.nombre }}
+            </span>
           </div>
           <div class="center-pill">
             <span class="porcentaje-badge">{{ e.porcentaje | number:'1.1-1' }}%</span>
@@ -72,7 +76,9 @@
         <div *ngFor="let e of topBajadas; let i = index" class="fintech-row">
           <div class="info-group">
             <div class="rank">{{ i + 1 }}</div>
-            <span class="nombre">{{ e.nombre }}</span>
+            <span class="nombre"(click)="abrirHistoricoEmbalse(e.idEmbalse)">
+              {{ e.nombre }}
+            </span>
           </div>
           <div class="center-pill">
             <span class="porcentaje-badge">{{ e.porcentaje | number:'1.1-1' }}%</span>
