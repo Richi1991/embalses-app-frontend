@@ -13,8 +13,17 @@
 .variation {
   font-weight: bold;
   margin-left: 10px;
-  &.positive { color: #00ff84; } // Verde neón
-  &.negative { color: #ff4d4d; } // Rojo
+
+  &.positive {
+    color: #00ff84;
+  }
+
+  // Verde neón
+  &.negative {
+    color: #ff4d4d;
+  }
+
+  // Rojo
 }
 
 // ESTILOS DEL GRÁFICO (Agrupados dentro de su tarjeta)
@@ -27,7 +36,7 @@
 
   .chart-header {
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     gap: 12px;
 
     @media (min-width: 480px) {
@@ -63,7 +72,7 @@
   .time-filters {
     display: flex;
     gap: 4px;
-    
+
     button {
       background: transparent;
       border: none;
@@ -81,7 +90,7 @@
 
   .chart-body {
     width: 100%;
-    height: 250px; 
+    height: 250px;
     position: relative;
     margin-top: 15px;
     overflow: hidden;
@@ -101,12 +110,13 @@
 // CONTENEDOR DE TARJETAS INFERIORES
 .cards-wrapper {
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   gap: 16px;
 
   @media (min-width: 768px) {
     flex-direction: row;
-    & > div {
+
+    &>div {
       flex: 1;
     }
   }
@@ -128,10 +138,37 @@
     font-size: 1.1rem;
     margin-bottom: 15px;
 
-    &.subidas { color: #00ff84; }
-    &.bajadas { color: #ff4566; }
+    &.subidas {
+      color: #00ff84;
+    }
+
+    &.bajadas {
+      color: #ff4566;
+    }
   }
 }
+
+// Estilo para la leyenda superior
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+    
+    .label-nombre { flex: 2; padding-left: 25px; }
+    .label-porcentaje { flex: 1; text-align: center; }
+    .label-stats { flex: 1.5; text-align: right; }
+  }
+
 
 // FILAS DE DATOS
 .fintech-row {
@@ -140,7 +177,16 @@
   padding: 12px 0;
   border-bottom: 1px solid #2a2e39;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .info-group {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    .nombre { color: #ffffff; font-weight: 600; font-size: 0.85rem; }
+  }
 
   .rank {
     color: #848e9c;
@@ -148,26 +194,26 @@
     width: 20px;
   }
 
-  .info {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    margin-left: 10px;
+  
 
-    .nombre {
-      font-size: 0.85rem;
-      color: #ffffff;
-      font-weight: 600;
-    }
+ .center-pill {
+    flex: 1;
+    text-align: center; // Centrado exacto bajo la leyenda
 
-    .subtext {
-      color: #848e9c;
-      font-size: 0.7rem;
-      text-transform: uppercase;
+    .porcentaje-badge {
+      background: rgba(255, 255, 255, 0.08); // Fondo neutro grisáceo
+      color: rgba(255, 255, 255, 0.9); // Texto blanco suave
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-  }
+  }  
 
   .stats {
+    flex: 1.5;
     text-align: right;
     display: flex;
     flex-direction: column;
@@ -191,6 +237,7 @@
         background: rgba(0, 255, 132, 0.15);
         color: #00ff84;
       }
+
       &.negative {
         background: rgba(255, 69, 102, 0.15);
         color: #ff4566;

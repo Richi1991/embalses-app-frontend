@@ -19,6 +19,11 @@
           <button (click)="updateChart('1M')" [class.active]="filter === '1M'">1M</button>
           <button (click)="updateChart('3M')" [class.active]="filter === '3M'">3M</button>
           <button (click)="updateChart('YTD')" [class.active]="filter === 'YTD'">YTD</button>
+          <button (click)="updateChart('1A')" [class.active]="filter === '1A'">1A</button>
+          <button (click)="updateChart('2A')" [class.active]="filter === '2A'">2A</button>
+          <button (click)="updateChart('3A')" [class.active]="filter === '3A'">3A</button>
+          <button (click)="updateChart('5A')" [class.active]="filter === '5A'">5A</button>
+          <button (click)="updateChart('10A')" [class.active]="filter === '10A'">10A</button>
         </div>
       </div>
 
@@ -33,11 +38,19 @@
           <ion-icon name="trending-up-outline"></ion-icon>
           <span>Top 5 Subidas</span>
         </div>
+        <div class="header-row">
+          <span class="label-nombre">Embalse</span>
+          <span class="label-porcentaje">Porcentaje</span>
+          <span class="label-stats">Volumen</span>
+        </div>
+
         <div *ngFor="let e of topSubidas; let i = index" class="fintech-row">
-          <div class="rank">{{ i + 1 }}</div>
-          <div class="info">
+          <div class="info-group">
+            <div class="rank">{{ i + 1 }}</div>
             <span class="nombre">{{ e.nombre }}</span>
-            <span class="subtext">Cuenca del Segura</span>
+          </div>
+          <div class="center-pill">
+            <span class="porcentaje-badge">{{ e.porcentaje | number:'1.1-1' }}%</span>
           </div>
           <div class="stats">
             <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
@@ -51,11 +64,18 @@
           <ion-icon name="trending-down-outline"></ion-icon>
           <span>Top 5 Bajadas</span>
         </div>
+        <div class="header-row">
+          <span class="label-nombre">Embalse</span>
+          <span class="label-porcentaje">Porcentaje</span>
+          <span class="label-stats">Volumen</span>
+        </div>
         <div *ngFor="let e of topBajadas; let i = index" class="fintech-row">
-          <div class="rank">{{ i + 1 }}</div>
-          <div class="info">
+          <div class="info-group">
+            <div class="rank">{{ i + 1 }}</div>
             <span class="nombre">{{ e.nombre }}</span>
-            <span class="subtext">Cuenca del Segura</span>
+          </div>
+          <div class="center-pill">
+            <span class="porcentaje-badge">{{ e.porcentaje | number:'1.1-1' }}%</span>
           </div>
           <div class="stats">
             <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>

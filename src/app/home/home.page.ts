@@ -86,6 +86,26 @@ export class HomePage implements OnInit {
         // Desde el 1 de enero del año actual
         fechaLimite = new Date(ahora.getFullYear(), 0, 1);
         break;
+      case '1A':
+        // Desde hace 1 año
+        fechaLimite.setDate(ahora.getDate() - 365);
+        break;
+      case '2A':
+        // Desde hace 2 año
+        fechaLimite.setDate(ahora.getDate() - 730);
+        break;
+      case '3A':
+        // Desde hace 3 año
+        fechaLimite.setDate(ahora.getDate() - 1095);
+        break;
+      case '5A':
+        // Desde hace 5 año
+        fechaLimite.setDate(ahora.getDate() - 1825);
+        break;
+      case '10A':
+        // Desde hace 5 año
+        fechaLimite.setDate(ahora.getDate() - 3650);
+        break;
     }
 
     // Filtramos el array maestro
@@ -136,7 +156,22 @@ export class HomePage implements OnInit {
       } else if (this.filter === 'YTD') {
         // Para YTD, devolvemos solo el mes: "ene", "feb", "mar"...
         return fecha.toLocaleDateString('es-ES', { month: 'short' });
-      } else {
+      } else if (this.filter === '1A') {
+        // Para 1A, devolvemos mes y anio desde hace un año
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      } else if (this.filter === '2A') {
+        // Para 2A, devolvemos mes y anio desde hace 2 años
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      } else if (this.filter === '3A') {
+        // Para 3A, devolvemos mes y anio desde hace 3 años
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      } else if (this.filter === '5A') {
+        // Para 5A, devolvemos mes y anio desde hace 5 años
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      } else if (this.filter === '10A') {
+        // Para 10A, devolvemos mes y anio desde hace 10 años
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      }else {
         return fecha.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
       }
     });
