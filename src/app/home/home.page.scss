@@ -10,6 +10,12 @@
   box-sizing: border-box;
 }
 
+@media (max-width: 600px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
 .variation {
   font-weight: bold;
   margin-left: 10px;
