@@ -7,10 +7,19 @@
           <h2>Volumen Total Cuenca del Segura</h2>
           <div class="main-value">
             {{ volumenTotalHeader | number:'1.2-2' }} <span>hm³</span>
-
             <small [class]="tendenciaPositiva ? 'variation positive' : 'variation negative'">
-              {{ tendenciaPositiva ? '+' : '' }}{{ porcentajeVariacion | number:'1.2-2' }}%
+              {{ tendenciaPositiva ? '+' : '' }}{{ variacionVolumenTotal | number:'1.2-2' }}hm3
             </small>
+            
+
+          </div>
+          <div class="main-value">
+            {{ porcentajeTotalHeader | number:'1.2-2' }} <span>%</span>
+            
+            <small [class]="tendenciaPositiva ? 'variation positive' : 'variation negative'">
+              {{ tendenciaPositiva ? '+' : '' }}{{ variacionPorcentajeTotalHeader | number:'1.2-2' }}%
+            </small>
+
           </div>
         </div>
 
@@ -76,7 +85,7 @@
         <div *ngFor="let e of topBajadas; let i = index" class="fintech-row">
           <div class="info-group">
             <div class="rank">{{ i + 1 }}</div>
-            <span class="nombre"(click)="abrirHistoricoEmbalse(e.idEmbalse)">
+            <span class="nombre" (click)="abrirHistoricoEmbalse(e.idEmbalse)">
               {{ e.nombre }}
             </span>
           </div>

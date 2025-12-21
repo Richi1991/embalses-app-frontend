@@ -31,11 +31,14 @@ export class HomePage implements OnInit {
   public volumenTotal: number = 0;
   public porcentajeMedio: number = 0;
   public porcentajeTotal: number = 0;
+  public porcentajeTotalHeader: number = 0;
+  public variacionPorcentajeTotalHeader: number = 0;
   public porcentajeVariacion: number = 0;
+  public variacionVolumenTotal: number = 0;
   public totalVariacion: number = 0;
   private historicoCompleto: any[] = [];
-  private historicoCompletoEmbalse: any[] = [];
   public volumenTotalHeader: number = 0;
+  public volumenMaximoCuenca: number = 1140;
   public porcentajeHeader: number = 0;
   public tendenciaPositiva: boolean = true;
 
@@ -43,25 +46,69 @@ export class HomePage implements OnInit {
     addIcons({ arrowUpOutline, arrowDownOutline, removeOutline });
   }
 
+  ngOnInit() {
+    this.cargarDatos();
+  }
+ 
+  cargarDatos() {
+    this.embalseService.getTopMovimientos().subscribe({
+      next: (data: Embalse[]) => {
+        // 1. Normalizamos los datos (mapeo que ya tenías)
+        const datosNormalizados = data.map(e => ({
+          ...e,
+          idEmbalse: e.idEmbalse,
+          volumen: e.hm3,
+          tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
+        }));
 
-  ngAfterViewInit() {
+        // 2. Lógica Fintech: Separar en Top 5 Subidas y Top 5 Bajadas
+        // Ordenamos por variación de mayor a menor para las subidas
+        this.topSubidas = [...datosNormalizados]
+          .filter(e => e.variacion > 0)
+          .sort((a, b) => b.variacion - a.variacion)
+          .slice(0, 5);
+
+        // Ordenamos por variación de menor a mayor para las bajadas
+        this.topBajadas = [...datosNormalizados]
+          .filter(e => e.variacion < 0)
+          .sort((a, b) => a.variacion - b.variacion)
+          .slice(0, 5);
+
+        // Mantenemos la lista completa por si la necesitas debajo
+        this.embalses = datosNormalizados.sort((a, b) => b.hm3 - a.hm3);
+
+        // 3. Totales para el encabezado
+        this.volumenTotal = data.reduce((acc, e) => acc + (e.hm3 || 0), 0);
+        this.porcentajeTotal = data.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
+        this.totalVariacion = data.reduce((acc, e) => acc + (e.variacion || 0), 0);
+        this.porcentajeMedio = data.length > 0
+          ? (data.reduce((acc, e) => acc + (e.porcentaje || 0), 0) / data.length)
+          : 0;
+      },
+      error: (err) => {
+        console.error('Error cargando datos', err);
+        this.embalses = [];
+        this.topSubidas = [];
+        this.topBajadas = [];
+      }
+    });
+  }
+
+
+   ngAfterViewInit() {
     // Esperamos 300ms para que la tarjeta gris se estire en pantalla
     setTimeout(() => {
 
       this.embalseService.getHistoricoCuencaSeguraList().subscribe({
         next: (datos) => {
           this.historicoCompleto = datos;
-          this.updateChart('1D');
+          this.updateChart('1S');
         },
         error: (err) => {
           console.error("Error al obtener el histórico", err);
         }
       });
     }, 300);
-  }
-
-  ngOnInit() {
-    this.cargarDatos();
   }
 
   updateChart(selectedFilter: string) {
@@ -77,7 +124,8 @@ export class HomePage implements OnInit {
     // Filtramos el array maestro
     const datosFiltrados = this.historicoCompleto.filter(item => {
       const fechaItem = new Date(item.fechaRegistro);
-      return fechaItem >= fechaLimite;
+      const volumenValido = item.volumenTotal <= this.volumenMaximoCuenca;
+      return fechaItem >= fechaLimite && volumenValido;
     });
 
     if (datosFiltrados.length > 0) {
@@ -86,11 +134,14 @@ export class HomePage implements OnInit {
 
       // 1. El valor principal es el último dato conocido
       this.volumenTotalHeader = ultimo.volumenTotal;
+      this.porcentajeTotalHeader = ultimo.porcentajeTotal;
+      this.variacionPorcentajeTotalHeader = ultimo.porcentajeTotal - primero.porcentajeTotal;
 
       // 2. Calculamos la variación porcentual entre el inicio del periodo y el final
       // Fórmula: ((Actual - Inicial) / Inicial) * 100
       if (primero.volumenTotal !== 0) {
         this.porcentajeVariacion = ((ultimo.volumenTotal - primero.volumenTotal) / primero.volumenTotal) * 100;
+        this.variacionVolumenTotal = (ultimo.volumenTotal - primero.volumenTotal);
       } else {
         this.porcentajeVariacion = 0;
       }
@@ -148,8 +199,8 @@ export class HomePage implements OnInit {
       fecha.setDate(ahora.getDate() - 3650);
       break;
     case 'ALL':
-      // Usamos una fecha garantizada anterior a cualquier registro
-      return new Date(1900, 0, 1); 
+      fecha.setDate(ahora.getDate() - 7300);
+       break;
     default:
       // Por defecto 1 año si algo falla
       fecha.setDate(ahora.getDate() - 365);
@@ -202,7 +253,13 @@ export class HomePage implements OnInit {
       }
     });
 
-    const valores = datosReales.map(item => item.volumenTotal);
+    const valores = datosReales.map(item => item.volumenTotal || 0);
+    const valoresPorcentaje = datosReales.map(item => {
+        const p = item.porcentajeTotal || 0;
+        return p > 100 ? 100 : (p < 0 ? 0 : p);
+    });
+      
+      
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(0, 255, 132, 0.2)');
@@ -216,15 +273,26 @@ export class HomePage implements OnInit {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [{
+        datasets: [
+          {
+          label: "Volumen (hm3)",
           data: valores,
           borderColor: '#00ff84',
           borderWidth: 2,
           fill: true,
           backgroundColor: gradient,
           pointRadius: 0,
-          tension: 0.4
-        }]
+          tension: 0.4,
+          yAxisID: 'y',
+          },
+          {
+          label: 'Porcentaje (%)',
+          data: valoresPorcentaje,
+          borderColor: 'transparent', // Invisible para que solo usemos su escala
+          pointRadius: 0,
+          yAxisID: 'y1'
+          }
+        ]
       },
       options: {
         responsive: true,
@@ -237,7 +305,7 @@ export class HomePage implements OnInit {
               color: '#848e9c',
               maxRotation: 0,
               autoSkip: true,
-              maxTicksLimit: 5 // Menos etiquetas para un look más limpio
+              maxTicksLimit: 12 // Menos etiquetas para un look más limpio
             }
           },
           y: {
@@ -247,6 +315,15 @@ export class HomePage implements OnInit {
             ticks: {
               color: '#848e9c',
               callback: (value) => value + ' hm³' // Añade la unidad al eje
+            }
+          },
+           y1: {
+            type: 'linear',
+            position: 'left',
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: {
+              color: '#848e9c',
+              callback: (value) => value + ' %' // Añade la unidad al eje
             }
           }
         },
@@ -264,46 +341,4 @@ export class HomePage implements OnInit {
     })
   }
 
-  cargarDatos() {
-    this.embalseService.getTopMovimientos().subscribe({
-      next: (data: Embalse[]) => {
-        // 1. Normalizamos los datos (mapeo que ya tenías)
-        const datosNormalizados = data.map(e => ({
-          ...e,
-          idEmbalse: e.idEmbalse,
-          volumen: e.hm3,
-          tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
-        }));
-
-        // 2. Lógica Fintech: Separar en Top 5 Subidas y Top 5 Bajadas
-        // Ordenamos por variación de mayor a menor para las subidas
-        this.topSubidas = [...datosNormalizados]
-          .filter(e => e.variacion > 0)
-          .sort((a, b) => b.variacion - a.variacion)
-          .slice(0, 5);
-
-        // Ordenamos por variación de menor a mayor para las bajadas
-        this.topBajadas = [...datosNormalizados]
-          .filter(e => e.variacion < 0)
-          .sort((a, b) => a.variacion - b.variacion)
-          .slice(0, 5);
-
-        // Mantenemos la lista completa por si la necesitas debajo
-        this.embalses = datosNormalizados.sort((a, b) => b.hm3 - a.hm3);
-
-        // 3. Totales para el encabezado
-        this.volumenTotal = data.reduce((acc, e) => acc + (e.hm3 || 0), 0);
-        this.totalVariacion = data.reduce((acc, e) => acc + (e.variacion || 0), 0);
-        this.porcentajeMedio = data.length > 0
-          ? (data.reduce((acc, e) => acc + (e.porcentaje || 0), 0) / data.length)
-          : 0;
-      },
-      error: (err) => {
-        console.error('Error cargando datos', err);
-        this.embalses = [];
-        this.topSubidas = [];
-        this.topBajadas = [];
-      }
-    });
-  }
 }
