@@ -216,42 +216,39 @@ export class HomePage implements OnInit {
     if (!ctx) return;
 
     const labels = datosReales.map(item => {
-      const fecha = new Date(item.fechaRegistro);
+  const fecha = new Date(item.fechaRegistro);
+  const isMobile = window.innerWidth < 768; // Detectamos si es móvil
 
-      if (this.filter === '1D') {
-        // Si filtramos por día, queremos ver la hora: 14:30
-        return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      } else if (this.filter === '1S') {
-        // Si filtramos por la última semana vemos los días y el mes
-        return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
-      } else if (this.filter === '1M' || this.filter === '3M') {
-        // Si filtramos por meses, queremos ver el día y mes: 19 Dic
-        return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
-      } else if (this.filter === 'YTD') {
-        // Para YTD, devolvemos solo el mes: "ene", "feb", "mar"...
-        return fecha.toLocaleDateString('es-ES', { month: 'short' });
-      } else if (this.filter === '1A') {
-        // Para 1A, devolvemos mes y anio desde hace un año
-        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-      } else if (this.filter === '2A') {
-        // Para 2A, devolvemos mes y anio desde hace 2 años
-        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-      } else if (this.filter === '3A') {
-        // Para 3A, devolvemos mes y anio desde hace 3 años
-        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-      } else if (this.filter === '5A') {
-        // Para 5A, devolvemos mes y anio desde hace 5 años
-        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-      } else if (this.filter === '10A') {
-        // Para 10A, devolvemos mes y anio desde hace 10 años
-        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-      } else if (this.filter === 'ALL') {
-        // Desde el principio, devolvemos mes y anio desde hace 20 años
-        return fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
-      }else {
-        return fecha.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
-      }
-    });
+  switch (this.filter) {
+    case '1D':
+      return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    case '1S':
+    case '1M':
+    case '3M':
+      // Semana y meses: "19 dic"
+      return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
+
+    case 'YTD':
+      // Solo el mes corto: "ene"
+      return fecha.toLocaleDateString('es-ES', { month: 'short' });
+
+    case '1A':
+    case '2A':
+    case '3A':
+    case '5A':
+    case '10A':
+    case 'ALL':
+      // Lógica condicional: Solo año en móvil, Mes/Año en PC
+      return isMobile 
+        ? fecha.getFullYear().toString() 
+        : fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+
+    default:
+      // Formato de respaldo: "19/12"
+      return fecha.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+  }
+});
 
     const valores = datosReales.map(item => item.volumenTotal || 0);
     const valoresPorcentaje = datosReales.map(item => {
