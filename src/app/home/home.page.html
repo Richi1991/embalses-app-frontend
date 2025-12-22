@@ -4,7 +4,11 @@
       <div class="chart-header">
         <div class="info">
           <div class="card-title total_embalses">
-            <ion-icon name="water-outline"></ion-icon>
+            <div class="modern-reservoir">
+              <div class="water-fill" [style.height.%]="porcentajeTotalHeader">
+                <div class="wave"></div>
+              </div>
+            </div>
             <span>Volumen Total Cuenca del Segura</span>
           </div>
           <div class="main-value">
@@ -117,10 +121,13 @@
         <div class="time-filters">
           <button (click)="cargarSeccion('1 day', 'individual')" [class.active]="filtroIndividual === '1D'">1D</button>
           <button (click)="cargarSeccion('7 days', 'individual')" [class.active]="filtroIndividual === '7D'">7D</button>
-          <button (click)="cargarSeccion('14 days', 'individual')" [class.active]="filtroIndividual === '14D'">14D</button>
-          <button (click)="cargarSeccion('1 month', 'individual')"[class.active]="filtroIndividual === '1M'">1M</button>
-          <button (click)="cargarSeccion('3 month', 'individual')"[class.active]="filtroIndividual === '3M'">3M</button>
-          <button (click)="cargarSeccion('1 year', 'individual')"[class.active]="filtroIndividual === '1A'">1A</button>
+          <button (click)="cargarSeccion('14 days', 'individual')"
+            [class.active]="filtroIndividual === '14D'">14D</button>
+          <button (click)="cargarSeccion('1 month', 'individual')"
+            [class.active]="filtroIndividual === '1M'">1M</button>
+          <button (click)="cargarSeccion('3 month', 'individual')"
+            [class.active]="filtroIndividual === '3M'">3M</button>
+          <button (click)="cargarSeccion('1 year', 'individual')" [class.active]="filtroIndividual === '1A'">1A</button>
         </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>

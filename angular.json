@@ -90,8 +90,7 @@
             "development": {
               "buildTarget": "app:build:development"
             },
-            "ci": {
-            }
+            "ci": {}
           },
           "defaultConfiguration": "development"
         },
@@ -114,6 +113,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*.svg",
+                "input": "node_modules/ionicons/dist/ionicons/svg",
+                "output": "./svg"
               }
             ],
             "styles": [
