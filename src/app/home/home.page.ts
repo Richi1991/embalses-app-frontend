@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { EmbalseService, Embalse } from '../services/embalse.service';
 import { addIcons } from 'ionicons';
 import { Router } from '@angular/router';
-import { arrowUpOutline, arrowDownOutline, removeOutline, trendingUpOutline, trendingDownOutline, waterOutline } from 'ionicons/icons';
+import { trendingUpOutline, trendingDownOutline, waterOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-home',
@@ -42,13 +42,13 @@ export class HomePage implements OnInit {
   public mensajeSinBajadas: string = '';
   filtroActual: string = '1 day';
 
-  constructor(private router: Router) {
-    addIcons({
-      arrowUpOutline, arrowDownOutline, removeOutline, 'trending-up-outline': trendingUpOutline,
-      'trending-down-outline': trendingDownOutline,
-      'water-outline': waterOutline
-    });
-  }
+constructor(private router: Router) {
+  addIcons({
+    'trending-up-outline': trendingUpOutline,
+    'trending-down-outline': trendingDownOutline,
+    'water-outline': waterOutline
+  });
+}
 
   ngOnInit() {
     this.cargarDatos();
