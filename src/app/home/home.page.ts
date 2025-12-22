@@ -5,12 +5,15 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { EmbalseService, Embalse } from '../services/embalse.service';
 import { addIcons } from 'ionicons';
-import { trendingUpOutline, trendingDownOutline } from 'ionicons/icons';
+import { trendingUpOutline, trendingDownOutline, waterOutline, layersOutline, barChartOutline } from 'ionicons/icons';
 import { Router } from '@angular/router';
 
 addIcons({
   'trending-up-outline': trendingUpOutline,
-  'trending-down-outline': trendingDownOutline
+  'trending-down-outline': trendingDownOutline,
+  'water-outline': waterOutline,   // Opción A: La gota (limpio)
+  'layers-outline': layersOutline,  // Opción B: Niveles (moderno)
+  'bar-chart-outline': barChartOutline // Opción C: Datos de capacidad
 });
 import { arrowUpOutline, arrowDownOutline, removeOutline } from 'ionicons/icons';
 
@@ -26,6 +29,9 @@ export class HomePage implements OnInit {
   public embalses: Embalse[] = [];
   public topSubidas: Embalse[] = [];
   public topBajadas: Embalse[] = [];
+  public filtroSubidas: string = '1 day';
+  public filtroBajadas: string = '1 day';
+  public filtroIndividual: string = '1 day';
   public chart: any;
   public filter: string = '1D'; // Declaramos la propiedad que faltaba
   public volumenTotal: number = 0;
@@ -50,97 +56,114 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    this.cargarDatosSubidas();
-    this.cargarDatosBajadas();
+    this.cargarDatos();
   }
 
-  cargarDatosSubidas(intervalo: string = '1 day') {
-    this.embalseService.getTopMovimientos(intervalo).subscribe({
-      next: (data: Embalse[]) => {
-        // 1. Normalizamos los datos (mapeo que ya tenías)
-        const datosNormalizados = data.map(e => ({
-          ...e,
-          idEmbalse: e.idEmbalse,
-          volumen: e.hm3,
-          tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
-        }));
+  cargarDatos(intervalo: string = '1 day') {
+  this.filtroActual = intervalo;
+  
+  this.embalseService.getTopMovimientos(intervalo).subscribe({
+    next: (data: Embalse[]) => {
+      // 1. Normalización común
+      const datosNormalizados = data.map(e => ({
+        ...e,
+        volumen: e.hm3,
+        tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
+      }));
 
-        // 2. Lógica Fintech: Separar en Top 5 Subidas y Top 5 Bajadas
-        // Ordenamos por variación de mayor a menor para las subidas
-        this.topSubidas = [...datosNormalizados]
+      // 2. Procesamiento de Listas
+      this.topSubidas = [...datosNormalizados]
+        .filter(e => e.variacion > 0)
+        .sort((a, b) => b.variacion - a.variacion)
+        .slice(0, 5);
+
+      this.topBajadas = [...datosNormalizados]
+        .filter(e => e.variacion < 0)
+        .sort((a, b) => a.variacion - b.variacion)
+        .slice(0, 5);
+
+      // Lista completa ordenada por hm3 (o por variación si prefieres)
+      this.embalses = [...datosNormalizados].sort((a, b) => b.hm3 - a.hm3);
+
+      // 3. Gestión de Mensajes de Estado Vacío
+      const textoTiempo = this.getTextoTiempo(intervalo);
+      this.mensajeSinSubidas = this.topSubidas.length === 0 
+        ? `Actualmente no hay ningún embalse que presente subidas en ${textoTiempo}.` 
+        : '';
+      
+      this.mensajeSinBajadas = this.topBajadas.length === 0 
+        ? `Actualmente no hay ningún embalse que presente bajadas en ${textoTiempo}.` 
+        : '';
+
+      // 4. Cálculos de Totales
+      this.volumenTotal = data.reduce((acc, e) => acc + (e.hm3 || 0), 0);
+      this.porcentajeTotal = data.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
+      this.totalVariacion = data.reduce((acc, e) => acc + (e.variacion || 0), 0);
+      this.porcentajeMedio = data.length > 0 ? (this.porcentajeTotal / data.length) : 0;
+    },
+    error: (err) => {
+      console.error('Error cargando datos', err);
+      this.limpiarDatos();
+    }
+  });
+}
+
+cargarSeccion(intervalo: string, seccion: 'subidas' | 'bajadas' | 'individual') {
+  // Actualizamos el filtro visual de la sección específica
+  if (seccion === 'subidas') this.filtroSubidas = intervalo;
+  if (seccion === 'bajadas') this.filtroBajadas = intervalo;
+  if (seccion === 'individual') this.filtroIndividual = intervalo;
+
+  this.embalseService.getTopMovimientos(intervalo).subscribe({
+    next: (data: Embalse[]) => {
+      const datosNormalizados = data.map(e => ({
+        ...e,
+        volumen: e.hm3,
+        tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
+      }));
+
+      const textoTiempo = this.getTextoTiempo(intervalo);
+
+      if (seccion === 'subidas') {
+        this.topSubidas = datosNormalizados
           .filter(e => e.variacion > 0)
           .sort((a, b) => b.variacion - a.variacion)
           .slice(0, 5);
-
-        if (this.topSubidas.length === 0) {
-          const tiempo = intervalo === '1 day' ? 'el último día' : 
-                         intervalo === '7 days' ? 'la última semana' : 
-                         intervalo === '1 month' ? 'el último mes': 'el periodo seleccionado';
-          this.mensajeSinSubidas = `Actualmente no hay ningún embalse que presente subidas en ${tiempo}.`;
-        }
-
-        // Mantenemos la lista completa por si la necesitas debajo
-        this.embalses = datosNormalizados.sort((a, b) => b.hm3 - a.hm3);
-
-        // 3. Totales para el encabezado
-        this.volumenTotal = data.reduce((acc, e) => acc + (e.hm3 || 0), 0);
-        this.porcentajeTotal = data.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
-        this.totalVariacion = data.reduce((acc, e) => acc + (e.variacion || 0), 0);
-        this.porcentajeMedio = data.length > 0
-          ? (data.reduce((acc, e) => acc + (e.porcentaje || 0), 0) / data.length)
-          : 0;
-      },
-      error: (err) => {
-        console.error('Error cargando datos', err);
-        this.topSubidas = [];
-        this.mensajeSinSubidas = 'No se han podido cargar los datos en este momento.';
-      }
-    });
-  }
-
-  cargarDatosBajadas(intervalo: string = '1 day') {
-    this.embalseService.getTopMovimientos(intervalo).subscribe({
-      next: (data: Embalse[]) => {
-        // 1. Normalizamos los datos (mapeo que ya tenías)
-        const datosNormalizados = data.map(e => ({
-          ...e,
-          idEmbalse: e.idEmbalse,
-          volumen: e.hm3,
-          tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
-        }));
-
-        // Ordenamos por variación de menor a mayor para las bajadas
-        this.topBajadas = [...datosNormalizados]
+        this.mensajeSinSubidas = this.topSubidas.length === 0 ? `No hay subidas en ${textoTiempo}.` : '';
+      } 
+      else if (seccion === 'bajadas') {
+        this.topBajadas = datosNormalizados
           .filter(e => e.variacion < 0)
           .sort((a, b) => a.variacion - b.variacion)
           .slice(0, 5);
-
-        if (this.topBajadas.length === 0) {
-          const tiempo = intervalo === '1 day' ? 'el último día' : 
-                         intervalo === '7 days' ? 'la última semana' : 
-                         intervalo === '1 month' ? 'el último mes': 'el periodo seleccionado';
-          this.mensajeSinBajadas = `Actualmente no hay ningún embalse que presente bajadas en ${tiempo}.`;
-        }
-
-        // Mantenemos la lista completa por si la necesitas debajo
-        this.embalses = datosNormalizados.sort((a, b) => b.hm3 - a.hm3);
-
-        // 3. Totales para el encabezado
-        this.volumenTotal = data.reduce((acc, e) => acc + (e.hm3 || 0), 0);
-        this.porcentajeTotal = data.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
-        this.totalVariacion = data.reduce((acc, e) => acc + (e.variacion || 0), 0);
-        this.porcentajeMedio = data.length > 0
-          ? (data.reduce((acc, e) => acc + (e.porcentaje || 0), 0) / data.length)
-          : 0;
-      },
-      error: (err) => {
-        console.error('Error cargando datos', err);
-        this.topBajadas = [];
-        this.mensajeSinBajadas = 'No se han podido cargar los datos en este momento.';
+        this.mensajeSinBajadas = this.topBajadas.length === 0 ? `No hay bajadas en ${textoTiempo}.` : '';
+      } 
+      else if (seccion === 'individual') {
+        // IMPORTANTE: Aquí NO filtramos por variacion > 0
+        // Mostramos todos ordenados por volumen (hm3) de mayor a menor
+        this.embalses = [...datosNormalizados].sort((a, b) => b.hm3 - a.hm3);
       }
-    });
-  }
+    }
+  });
+}
 
+// Métodos de apoyo para mantener el código limpio:
+private getTextoTiempo(intervalo: string): string {
+  const mapeo: { [key: string]: string } = {
+    '1 day': 'el último día',
+    '7 days': 'la última semana',
+    '30 days': 'el último mes'
+  };
+  return mapeo[intervalo] || 'el periodo seleccionado';
+}
+
+private limpiarDatos() {
+  this.topSubidas = [];
+  this.topBajadas = [];
+  this.embalses = [];
+  this.mensajeSinSubidas = 'Error al cargar datos.';
+  this.mensajeSinBajadas = 'Error al cargar datos.';
+}
 
   ngAfterViewInit() {
     // Esperamos 300ms para que la tarjeta gris se estire en pantalla

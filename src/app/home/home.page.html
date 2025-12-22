@@ -43,9 +43,9 @@
           <span>Top 5 Subidas</span>
         </div>
         <div class="time-filters">
-          <button (click)="cargarDatosSubidas('1 day')" [class.active]="filtroActual === '1D'">24h</button>
-          <button (click)="cargarDatosSubidas('7 days')" [class.active]="filtroActual === '7D'">7d</button>
-          <button (click)="cargarDatosSubidas('30 days')" [class.active]="filtroActual === '1M'">30d</button>
+          <button (click)="cargarSeccion('1 day', 'subidas')" [class.active]="filtroSubidas === '1 day'">24h</button>
+          <button (click)="cargarSeccion('7 days', 'subidas')" [class.active]="filtroSubidas === '7D'">7d</button>
+          <button (click)="cargarSeccion('30 days', 'subidas')" [class.active]="filtroSubidas === '1M'">30d</button>
         </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>
@@ -74,9 +74,9 @@
           <span>Top 5 Bajadas</span>
         </div>
         <div class="time-filters">
-          <button (click)="cargarDatosBajadas('1 day')" [class.active]="filtroActual === '1D'">24h</button>
-          <button (click)="cargarDatosBajadas('7 days')" [class.active]="filtroActual === '7D'">7d</button>
-          <button (click)="cargarDatosBajadas('30 days')" [class.active]="filtroActual === '1M'">30d</button>
+          <button (click)="cargarSeccion('1 day', 'bajadas')" [class.active]="filtroBajadas === '1D'">24h</button>
+          <button (click)="cargarSeccion('7 days', 'bajadas')" [class.active]="filtroBajadas === '7D'">7d</button>
+          <button (click)="cargarSeccion('30 days', 'bajadas')" [class.active]="filtroBajadas === '1M'">30d</button>
         </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>
@@ -96,6 +96,39 @@
           <div class="stats">
             <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
             <span class="badge negative">{{ e.variacion | number:'1.3-3' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cards-wrapper">
+      <div class="fintech-card">
+        <div class="card-title total_embalses">
+          <ion-icon name="water-outline"></ion-icon>
+          <span>Estado Embalses Individual</span>
+        </div>
+        <div class="time-filters">
+          <button (click)="cargarSeccion('1 day', 'individual')" [class.active]="filtroIndividual === '1D'">24h</button>
+          <button (click)="cargarSeccion('7 days', 'individual')" [class.active]="filtroIndividual === '7D'">7d</button>
+          <button (click)="cargarSeccion('30 days', 'individual')" [class.active]="filtroIndividual === '1M'">30d</button>
+        </div>
+        <div class="header-row">
+          <span class="label-nombre">Embalse</span>
+          <span class="label-porcentaje">Porcentaje</span>
+          <span class="label-stats">Volumen</span>
+        </div>
+        <div *ngFor="let e of embalses; let i = index" class="fintech-row">
+          <div class="info-group">
+            <div class="rank">{{ i + 1 }}</div>
+            <span class="nombre" (click)="abrirHistoricoEmbalse(e.idEmbalse)">
+              {{ e.nombre }}
+            </span>
+          </div>
+          <div class="center-pill">
+            <span class="porcentaje-badge">{{ e.porcentaje | number:'1.1-1' }}%</span>
+          </div>
+          <div class="stats">
+            <span class="volumen">{{ e.volumen | number:'1.2-2' }} <small>hm³</small></span>
+            <span class="badge positive">+{{ e.variacion | number:'1.3-3' }}</span>
           </div>
         </div>
       </div>
