@@ -41,17 +41,21 @@ export class HomePage implements OnInit {
   public volumenMaximoCuenca: number = 1140;
   public porcentajeHeader: number = 0;
   public tendenciaPositiva: boolean = true;
+  public mensajeSinSubidas: string = '';
+  public mensajeSinBajadas: string = '';
+  filtroActual: string = '1 day';
 
   constructor(private router: Router) {
     addIcons({ arrowUpOutline, arrowDownOutline, removeOutline });
   }
 
   ngOnInit() {
-    this.cargarDatos();
+    this.cargarDatosSubidas();
+    this.cargarDatosBajadas();
   }
- 
-  cargarDatos() {
-    this.embalseService.getTopMovimientos().subscribe({
+
+  cargarDatosSubidas(intervalo: string = '1 day') {
+    this.embalseService.getTopMovimientos(intervalo).subscribe({
       next: (data: Embalse[]) => {
         // 1. Normalizamos los datos (mapeo que ya tenías)
         const datosNormalizados = data.map(e => ({
@@ -68,11 +72,12 @@ export class HomePage implements OnInit {
           .sort((a, b) => b.variacion - a.variacion)
           .slice(0, 5);
 
-        // Ordenamos por variación de menor a mayor para las bajadas
-        this.topBajadas = [...datosNormalizados]
-          .filter(e => e.variacion < 0)
-          .sort((a, b) => a.variacion - b.variacion)
-          .slice(0, 5);
+        if (this.topSubidas.length === 0) {
+          const tiempo = intervalo === '1 day' ? 'el último día' : 
+                         intervalo === '7 days' ? 'la última semana' : 
+                         intervalo === '1 month' ? 'el último mes': 'el periodo seleccionado';
+          this.mensajeSinSubidas = `Actualmente no hay ningún embalse que presente subidas en ${tiempo}.`;
+        }
 
         // Mantenemos la lista completa por si la necesitas debajo
         this.embalses = datosNormalizados.sort((a, b) => b.hm3 - a.hm3);
@@ -87,15 +92,57 @@ export class HomePage implements OnInit {
       },
       error: (err) => {
         console.error('Error cargando datos', err);
-        this.embalses = [];
         this.topSubidas = [];
+        this.mensajeSinSubidas = 'No se han podido cargar los datos en este momento.';
+      }
+    });
+  }
+
+  cargarDatosBajadas(intervalo: string = '1 day') {
+    this.embalseService.getTopMovimientos(intervalo).subscribe({
+      next: (data: Embalse[]) => {
+        // 1. Normalizamos los datos (mapeo que ya tenías)
+        const datosNormalizados = data.map(e => ({
+          ...e,
+          idEmbalse: e.idEmbalse,
+          volumen: e.hm3,
+          tendencia: e.tendencia ? e.tendencia.toLowerCase() : 'estable'
+        }));
+
+        // Ordenamos por variación de menor a mayor para las bajadas
+        this.topBajadas = [...datosNormalizados]
+          .filter(e => e.variacion < 0)
+          .sort((a, b) => a.variacion - b.variacion)
+          .slice(0, 5);
+
+        if (this.topBajadas.length === 0) {
+          const tiempo = intervalo === '1 day' ? 'el último día' : 
+                         intervalo === '7 days' ? 'la última semana' : 
+                         intervalo === '1 month' ? 'el último mes': 'el periodo seleccionado';
+          this.mensajeSinBajadas = `Actualmente no hay ningún embalse que presente bajadas en ${tiempo}.`;
+        }
+
+        // Mantenemos la lista completa por si la necesitas debajo
+        this.embalses = datosNormalizados.sort((a, b) => b.hm3 - a.hm3);
+
+        // 3. Totales para el encabezado
+        this.volumenTotal = data.reduce((acc, e) => acc + (e.hm3 || 0), 0);
+        this.porcentajeTotal = data.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
+        this.totalVariacion = data.reduce((acc, e) => acc + (e.variacion || 0), 0);
+        this.porcentajeMedio = data.length > 0
+          ? (data.reduce((acc, e) => acc + (e.porcentaje || 0), 0) / data.length)
+          : 0;
+      },
+      error: (err) => {
+        console.error('Error cargando datos', err);
         this.topBajadas = [];
+        this.mensajeSinBajadas = 'No se han podido cargar los datos en este momento.';
       }
     });
   }
 
 
-   ngAfterViewInit() {
+  ngAfterViewInit() {
     // Esperamos 300ms para que la tarjeta gris se estire en pantalla
     setTimeout(() => {
 
@@ -165,48 +212,48 @@ export class HomePage implements OnInit {
   }
 
   private calcularFechaLimite(selectedFilter: string): Date {
-  const ahora = new Date();
-  const fecha = new Date();
+    const ahora = new Date();
+    const fecha = new Date();
 
-  switch (selectedFilter) {
-    case '1D':
-      fecha.setHours(0, 0, 0, 0);
-      break;
-    case '1S':
-      fecha.setDate(ahora.getDate() - 7);
-      break;
-    case '1M':
-      fecha.setDate(ahora.getDate() - 30);
-      break;
-    case '3M':
-      fecha.setDate(ahora.getDate() - 90);
-      break;
-    case 'YTD':
-      return new Date(ahora.getFullYear(), 0, 1);
-    case '1A':
-      fecha.setDate(ahora.getDate() - 365);
-      break;
-    case '2A':
-      fecha.setDate(ahora.getDate() - 730);
-      break;
-    case '3A':
-      fecha.setDate(ahora.getDate() - 1095);
-      break;
-    case '5A':
-      fecha.setDate(ahora.getDate() - 1825);
-      break;
-    case '10A':
-      fecha.setDate(ahora.getDate() - 3650);
-      break;
-    case 'ALL':
-      fecha.setDate(ahora.getDate() - 7300);
-       break;
-    default:
-      // Por defecto 1 año si algo falla
-      fecha.setDate(ahora.getDate() - 365);
+    switch (selectedFilter) {
+      case '1D':
+        fecha.setDate(ahora.getDate() - 1);
+        break;
+      case '1S':
+        fecha.setDate(ahora.getDate() - 7);
+        break;
+      case '1M':
+        fecha.setDate(ahora.getDate() - 30);
+        break;
+      case '3M':
+        fecha.setDate(ahora.getDate() - 90);
+        break;
+      case 'YTD':
+        return new Date(ahora.getFullYear(), 0, 1);
+      case '1A':
+        fecha.setDate(ahora.getDate() - 365);
+        break;
+      case '2A':
+        fecha.setDate(ahora.getDate() - 730);
+        break;
+      case '3A':
+        fecha.setDate(ahora.getDate() - 1095);
+        break;
+      case '5A':
+        fecha.setDate(ahora.getDate() - 1825);
+        break;
+      case '10A':
+        fecha.setDate(ahora.getDate() - 3650);
+        break;
+      case 'ALL':
+        fecha.setDate(ahora.getDate() - 7300);
+        break;
+      default:
+        // Por defecto 1 año si algo falla
+        fecha.setDate(ahora.getDate() - 365);
+    }
+    return fecha;
   }
-  return fecha;
-}
 
   initChart(datosReales: any[]) {
     const canvas = document.getElementById('evolutionChart') as HTMLCanvasElement;
@@ -216,47 +263,47 @@ export class HomePage implements OnInit {
     if (!ctx) return;
 
     const labels = datosReales.map(item => {
-  const fecha = new Date(item.fechaRegistro);
-  const isMobile = window.innerWidth < 768; // Detectamos si es móvil
+      const fecha = new Date(item.fechaRegistro);
+      const isMobile = window.innerWidth < 768; // Detectamos si es móvil
 
-  switch (this.filter) {
-    case '1D':
-      return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      switch (this.filter) {
+        case '1D':
+          return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    case '1S':
-    case '1M':
-    case '3M':
-      // Semana y meses: "19 dic"
-      return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
+        case '1S':
+        case '1M':
+        case '3M':
+          // Semana y meses: "19 dic"
+          return fecha.toLocaleDateString([], { day: '2-digit', month: 'short' });
 
-    case 'YTD':
-      // Solo el mes corto: "ene"
-      return fecha.toLocaleDateString('es-ES', { month: 'short' });
+        case 'YTD':
+          // Solo el mes corto: "ene"
+          return fecha.toLocaleDateString('es-ES', { month: 'short' });
 
-    case '1A':
-    case '2A':
-    case '3A':
-    case '5A':
-    case '10A':
-    case 'ALL':
-      // Lógica condicional: Solo año en móvil, Mes/Año en PC
-      return isMobile 
-        ? fecha.getFullYear().toString() 
-        : fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+        case '1A':
+        case '2A':
+        case '3A':
+        case '5A':
+        case '10A':
+        case 'ALL':
+          // Lógica condicional: Solo año en móvil, Mes/Año en PC
+          return isMobile
+            ? fecha.getFullYear().toString()
+            : fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
 
-    default:
-      // Formato de respaldo: "19/12"
-      return fecha.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
-  }
-});
+        default:
+          // Formato de respaldo: "19/12"
+          return fecha.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+      }
+    });
 
     const valores = datosReales.map(item => item.volumenTotal || 0);
     const valoresPorcentaje = datosReales.map(item => {
-        const p = item.porcentajeTotal || 0;
-        return p > 100 ? 100 : (p < 0 ? 0 : p);
+      const p = item.porcentajeTotal || 0;
+      return p > 100 ? 100 : (p < 0 ? 0 : p);
     });
-      
-      
+
+
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(0, 255, 132, 0.2)');
@@ -272,22 +319,22 @@ export class HomePage implements OnInit {
         labels: labels,
         datasets: [
           {
-          label: "Volumen (hm3)",
-          data: valores,
-          borderColor: '#00ff84',
-          borderWidth: 2,
-          fill: true,
-          backgroundColor: gradient,
-          pointRadius: 0,
-          tension: 0.4,
-          yAxisID: 'y',
+            label: "Volumen (hm3)",
+            data: valores,
+            borderColor: '#00ff84',
+            borderWidth: 2,
+            fill: true,
+            backgroundColor: gradient,
+            pointRadius: 0,
+            tension: 0.4,
+            yAxisID: 'y',
           },
           {
-          label: 'Porcentaje (%)',
-          data: valoresPorcentaje,
-          borderColor: 'transparent', // Invisible para que solo usemos su escala
-          pointRadius: 0,
-          yAxisID: 'y1'
+            label: 'Porcentaje (%)',
+            data: valoresPorcentaje,
+            borderColor: 'transparent', // Invisible para que solo usemos su escala
+            pointRadius: 0,
+            yAxisID: 'y1'
           }
         ]
       },
@@ -314,10 +361,10 @@ export class HomePage implements OnInit {
               callback: (value) => value + ' hm³' // Añade la unidad al eje
             }
           },
-           y1: {
+          y1: {
             type: 'linear',
             position: 'left',
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
             ticks: {
               color: '#848e9c',
               callback: (value) => value + ' %' // Añade la unidad al eje

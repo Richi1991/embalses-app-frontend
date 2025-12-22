@@ -10,51 +10,48 @@
             <small [class]="tendenciaPositiva ? 'variation positive' : 'variation negative'">
               {{ tendenciaPositiva ? '+' : '' }}{{ variacionVolumenTotal | number:'1.2-2' }}hm3
             </small>
-            
-
           </div>
           <div class="main-value">
             {{ porcentajeTotalHeader | number:'1.2-2' }} <span>%</span>
-            
             <small [class]="tendenciaPositiva ? 'variation positive' : 'variation negative'">
               {{ tendenciaPositiva ? '+' : '' }}{{ variacionPorcentajeTotalHeader | number:'1.2-2' }}%
             </small>
-
           </div>
         </div>
-
         <div class="time-filters">
           <button (click)="updateChart('1D')" [class.active]="filter === '1D'">1D</button>
           <button (click)="updateChart('1S')" [class.active]="filter === '1S'">1S</button>
           <button (click)="updateChart('1M')" [class.active]="filter === '1M'">1M</button>
           <button (click)="updateChart('3M')" [class.active]="filter === '3M'">3M</button>
-          <button (click)="updateChart('YTD')" [class.active]="filter === 'YTD'"class="hide-mobile">YTD</button>
+          <button (click)="updateChart('YTD')" [class.active]="filter === 'YTD'" class="hide-mobile">YTD</button>
           <button (click)="updateChart('1A')" [class.active]="filter === '1A'">1A</button>
-          <button (click)="updateChart('2A')" [class.active]="filter === '2A'"class="hide-mobile">2A</button>
+          <button (click)="updateChart('2A')" [class.active]="filter === '2A'" class="hide-mobile">2A</button>
           <button (click)="updateChart('3A')" [class.active]="filter === '3A'">3A</button>
           <button (click)="updateChart('5A')" [class.active]="filter === '5A'">5A</button>
           <button (click)="updateChart('10A')" [class.active]="filter === '10A'">10A</button>
           <button (click)="updateChart('ALL')" [class.active]="filter === 'ALL'">ALL</button>
         </div>
       </div>
-
       <div class="chart-body">
         <canvas id="evolutionChart"></canvas>
       </div>
     </div>
-
     <div class="cards-wrapper">
       <div class="fintech-card">
         <div class="card-title subidas">
           <ion-icon name="trending-up-outline"></ion-icon>
           <span>Top 5 Subidas</span>
         </div>
+        <div class="time-filters">
+          <button (click)="cargarDatosSubidas('1 day')" [class.active]="filtroActual === '1D'">24h</button>
+          <button (click)="cargarDatosSubidas('7 days')" [class.active]="filtroActual === '7D'">7d</button>
+          <button (click)="cargarDatosSubidas('30 days')" [class.active]="filtroActual === '1M'">30d</button>
+        </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>
           <span class="label-porcentaje">Porcentaje</span>
           <span class="label-stats">Volumen</span>
         </div>
-
         <div *ngFor="let e of topSubidas; let i = index" class="fintech-row">
           <div class="info-group">
             <div class="rank">{{ i + 1 }}</div>
@@ -71,11 +68,15 @@
           </div>
         </div>
       </div>
-
       <div class="fintech-card">
         <div class="card-title bajadas">
           <ion-icon name="trending-down-outline"></ion-icon>
           <span>Top 5 Bajadas</span>
+        </div>
+        <div class="time-filters">
+          <button (click)="cargarDatosBajadas('1 day')" [class.active]="filtroActual === '1D'">24h</button>
+          <button (click)="cargarDatosBajadas('7 days')" [class.active]="filtroActual === '7D'">7d</button>
+          <button (click)="cargarDatosBajadas('30 days')" [class.active]="filtroActual === '1M'">30d</button>
         </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>

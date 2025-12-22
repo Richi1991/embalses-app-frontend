@@ -8,6 +8,7 @@ export interface Embalse {
   hm3: number;        // Lo que viene del JSON
   volumen: number;    // Lo que espera el HTML
   porcentaje: number;
+  capacidadMaximaEmbalse: number;
   variacion: number;
   tendencia: string;
   fechaRegistro: Date;
@@ -32,8 +33,10 @@ export class EmbalseService {
   private apiUrlHistoricoCuenca = 'https://embalses-api.onrender.com/api/embalses/historico-cuenca';
   private apiUrlHistoricoEmbalse = 'https://embalses-api.onrender.com/api/embalses/obtener_historico_embalse';
 
-  getTopMovimientos(): Observable<Embalse[]> {
-    return this.http.get<Embalse[]>(this.apiUrl);
+  getTopMovimientos(intervalo: string = '1 day'): Observable<Embalse[]> {
+    return this.http.get<Embalse[]>(`${this.apiUrl}`, {
+      params: { intervalo: intervalo }
+    });
   }
 
   getHistoricoCuencaSeguraList(): Observable<HistoricoCuenca[]> {

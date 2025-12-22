@@ -29,6 +29,10 @@ export class EmbalseHistoricoComponent implements OnInit {
   nombreEmbalse: string = '';
   volumenTotalHeader: number = 0;
   porcentajeVariacion: number = 0;
+  variacionPorcentajeTotalHeader: number = 0;
+  porcentajeTotal: number = 0;
+  porcentajeTotalHeader: number = 0;
+  variacionVolumenTotal: number = 0;
   tendenciaPositiva: boolean = true;
   filter: string = 'ALL';
 
@@ -78,11 +82,17 @@ export class EmbalseHistoricoComponent implements OnInit {
     // Actualizar Header con el último dato disponible
     if (this.datosFiltrados.length > 0) {
       const ultimo = this.datosFiltrados[this.datosFiltrados.length - 1];
+      const primero = this.datosFiltrados[0];
       this.nombreEmbalse = ultimo.nombre;
       this.volumenTotalHeader = ultimo.hm3;
+      this.variacionVolumenTotal = (ultimo.hm3 - primero.hm3);
+      this.porcentajeTotalHeader = ultimo.porcentaje;
+      this.variacionPorcentajeTotalHeader = ultimo.porcentaje - primero.porcentaje;
       // Aquí podrías calcular la variación comparando con el primero del rango
-      this.porcentajeVariacion = ultimo.variacion || 0; 
+      this.porcentajeTotal = this.datosFiltrados.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
+      this.porcentajeVariacion = ultimo.porcentaje - primero.porcentaje; 
       this.tendenciaPositiva = this.porcentajeVariacion >= 0;
+     
     }
 
     this.renderChart();
@@ -98,27 +108,75 @@ export class EmbalseHistoricoComponent implements OnInit {
 
     // Usa la referencia canvas que definiste con @ViewChild
     const ctx = this.canvas.nativeElement.getContext('2d');
+     const valoresPorcentaje = this.datosFiltrados.map(item => {
+        const p = item.porcentaje || 0;
+        return p > 100 ? 100 : (p < 0 ? 0 : p);
+      });
     
     this.chart = new Chart(ctx!, {
       type: 'line',
       data: {
         labels: this.datosFiltrados.map(d => new Date(d.fechaRegistro).toLocaleDateString()),
         datasets: [{
+          label: 'Volumen (hm3)',
           data: this.datosFiltrados.map(d => d.hm3),
           borderColor: '#2962ff',
           backgroundColor: 'rgba(41, 98, 255, 0.1)',
           fill: true,
           tension: 0.4,
-          pointRadius: 0
+          pointRadius: 0,
+          yAxisID: 'y'
+        }, 
+        {
+          label: 'Porcentaje (%)',
+          data: valoresPorcentaje,
+          borderColor: 'transparent', // Invisible para que solo usemos su escala
+          pointRadius: 0,
+          yAxisID: 'y1'
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          // Sugerencia estética: añade un tooltip personalizado
+          tooltip: {
+            backgroundColor: '#1e2329',
+            titleColor: '#00ff84',
+            bodyColor: '#fff',
+            displayColors: false
+          }
+        },
         scales: {
-          y: { grid: { color: 'rgba(255,255,255,0.05)' } },
-          x: { grid: { display: false } }
+          x: {
+            type: 'category',
+            grid: { display: false },
+            ticks: {
+              color: '#848e9c',
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 12 // Menos etiquetas para un look más limpio
+            }
+          },
+          y: {
+            type: 'linear',
+            position: 'right',
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            ticks: {
+              color: '#848e9c',
+              callback: (value) => value + ' hm³' // Añade la unidad al eje
+            }
+          },
+          y1: {
+            type: 'linear',
+            position: 'left',
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            ticks: {
+              color: '#848e9c',
+              callback: (value) => value + ' %' // Añade la unidad al eje
+            }
+          }
         }
       }
     });
