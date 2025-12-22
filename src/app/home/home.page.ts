@@ -42,13 +42,13 @@ export class HomePage implements OnInit {
   public mensajeSinBajadas: string = '';
   filtroActual: string = '1 day';
 
-constructor(private router: Router) {
-  addIcons({
-    'trending-up-outline': trendingUpOutline,
-    'trending-down-outline': trendingDownOutline,
-    'water-outline': waterOutline
-  });
-}
+  constructor(private router: Router) {
+    addIcons({
+      'trending-up-outline': trendingUpOutline,
+      'trending-down-outline': trendingDownOutline,
+      'water-outline': waterOutline
+    });
+  }
 
   ngOnInit() {
     this.cargarDatos();
@@ -78,7 +78,7 @@ constructor(private router: Router) {
           .slice(0, 5);
 
         // Lista completa ordenada por hm3 (o por variación si prefieres)
-        this.embalses = [...datosNormalizados].sort((a, b) => b.hm3 - a.hm3);
+        this.embalses = [...datosNormalizados].sort((a, b) => b.variacion - a.variacion);
 
         // 3. Gestión de Mensajes de Estado Vacío
         const textoTiempo = this.getTextoTiempo(intervalo);
@@ -134,9 +134,8 @@ constructor(private router: Router) {
           this.mensajeSinBajadas = this.topBajadas.length === 0 ? `No hay bajadas en ${textoTiempo}.` : '';
         }
         else if (seccion === 'individual') {
-          // IMPORTANTE: Aquí NO filtramos por variacion > 0
           // Mostramos todos ordenados por volumen (hm3) de mayor a menor
-          this.embalses = [...datosNormalizados].sort((a, b) => b.hm3 - a.hm3);
+          this.embalses = [...datosNormalizados].sort((a, b) => b.variacion - a.variacion);
         }
       }
     });
@@ -217,12 +216,6 @@ constructor(private router: Router) {
 
     // Llamamos a initChart con los datos recortados
     this.initChart(datosFiltrados);
-  }
-
-  updateChartTopSubidas(selectedFilter: string) {
-    this.filter = selectedFilter; // Para que el botón cambie a clase .active
-
-    //this.historicoCompletoEmbalse
   }
 
   abrirHistoricoEmbalse(idEmbalse: number) {

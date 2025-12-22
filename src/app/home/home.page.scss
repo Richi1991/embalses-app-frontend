@@ -33,11 +33,11 @@
 }
 
 .nombre {
-  cursor: pointer; 
-  
+  cursor: pointer;
+
   &:hover {
-    text-decoration: underline; 
-    color: #2962ff;            
+    text-decoration: underline;
+    color: #2962ff;
   }
 }
 
@@ -64,6 +64,20 @@
       font-size: 0.75rem;
       margin: 0;
       text-transform: uppercase;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+
+
+      &.total_embalses {
+        color: #0e66ff;
+      }
     }
 
     .main-value {
@@ -160,13 +174,13 @@
     &.bajadas {
       color: #ff4566;
     }
+
     &.total_embalses {
       color: #0e66ff;
     }
   }
-}
 
-.time-filters {
+  .time-filters {
     display: flex;
     gap: 4px;
 
@@ -184,27 +198,41 @@
       }
     }
   }
+}
+
+
 
 // Estilo para la leyenda superior
-  .header-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    margin-bottom: 5px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    
-    span {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.4);
-      letter-spacing: 1px;
-      font-weight: bold;
-    }
-    
-    .label-nombre { flex: 2; padding-left: 25px; }
-    .label-porcentaje { flex: 1; text-align: center; }
-    .label-stats { flex: 1.5; text-align: right; }
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  margin-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  span {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 1px;
+    font-weight: bold;
   }
+
+  .label-nombre {
+    flex: 2;
+    padding-left: 25px;
+  }
+
+  .label-porcentaje {
+    flex: 1;
+    text-align: center;
+  }
+
+  .label-stats {
+    flex: 1.5;
+    text-align: right;
+  }
+}
 
 
 // FILAS DE DATOS
@@ -222,7 +250,12 @@
     flex: 2;
     display: flex;
     align-items: center;
-    .nombre { color: #ffffff; font-weight: 600; font-size: 0.85rem; }
+
+    .nombre {
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
   }
 
   .rank {
@@ -231,9 +264,7 @@
     width: 20px;
   }
 
-  
-
- .center-pill {
+  .center-pill {
     flex: 1;
     text-align: center; // Centrado exacto bajo la leyenda
 
@@ -247,7 +278,7 @@
       font-weight: 500;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-  }  
+  }
 
   .stats {
     flex: 1.5;
