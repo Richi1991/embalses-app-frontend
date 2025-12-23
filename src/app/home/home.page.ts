@@ -178,45 +178,50 @@ export class HomePage implements OnInit {
   updateChart(selectedFilter: string) {
     this.filter = selectedFilter; // Para que el botón cambie a clase .active
 
-    if (!this.historicoCompleto || this.historicoCompleto.length === 0) return;
+   if (selectedFilter === '1D') {
+      this.embalseService.getHistoricoCuencaSeguraDiaroList().subscribe({
+        next: (datos) => {
+          const fechaLimite = this.calcularFechaLimite('1D');
+          // Filtramos solo las últimas 24h del diario (aunque la tabla tenga 7 días)
+          const datosFiltrados = datos.filter(item => new Date(item.fechaRegistro) >= fechaLimite);
+          this.procesarYRenderizar(datosFiltrados);
+        }
+      });
+    }
+    // CASO 2: Resto de filtros (Tabla Histórica Larga)
+    else {
+      if (!this.historicoCompleto || this.historicoCompleto.length === 0) return;
 
-    const ahora = new Date();
-    let fechaLimite = new Date();
+      const fechaLimite = this.calcularFechaLimite(selectedFilter);
+      const datosFiltrados = this.historicoCompleto.filter(item => {
+        const fechaItem = new Date(item.fechaRegistro);
+        const volumenValido = item.volumenTotal <= this.volumenMaximoCuenca;
+        return fechaItem >= fechaLimite && volumenValido;
+      });
 
-    fechaLimite = this.calcularFechaLimite(selectedFilter);
+      this.procesarYRenderizar(datosFiltrados);
+    }
+  }
 
-    // Filtramos el array maestro
-    const datosFiltrados = this.historicoCompleto.filter(item => {
-      const fechaItem = new Date(item.fechaRegistro);
-      const volumenValido = item.volumenTotal <= this.volumenMaximoCuenca;
-      return fechaItem >= fechaLimite && volumenValido;
-    });
+// Centralizamos los cálculos y el renderizado aquí
+  private procesarYRenderizar(datos: any[]) {
+    if (datos.length > 0) {
+      const primero = datos[0];
+      const ultimo = datos[datos.length - 1];
 
-    if (datosFiltrados.length > 0) {
-      const primero = datosFiltrados[0];
-      const ultimo = datosFiltrados[datosFiltrados.length - 1];
-
-      // 1. El valor principal es el último dato conocido
       this.volumenTotalHeader = ultimo.volumenTotal;
       this.porcentajeTotalHeader = ultimo.porcentajeTotal;
       this.variacionPorcentajeTotalHeader = ultimo.porcentajeTotal - primero.porcentajeTotal;
 
-      // 2. Calculamos la variación porcentual entre el inicio del periodo y el final
-      // Fórmula: ((Actual - Inicial) / Inicial) * 100
       if (primero.volumenTotal !== 0) {
         this.porcentajeVariacion = ((ultimo.volumenTotal - primero.volumenTotal) / primero.volumenTotal) * 100;
         this.variacionVolumenTotal = (ultimo.volumenTotal - primero.volumenTotal);
-      } else {
-        this.porcentajeVariacion = 0;
       }
-
-      // 3. Determinamos si es positivo para el color (verde/rojo)
       this.tendenciaPositiva = this.porcentajeVariacion >= 0;
     }
-
-    // Llamamos a initChart con los datos recortados
-    this.initChart(datosFiltrados);
+    this.initChart(datos);
   }
+
 
   abrirHistoricoEmbalse(idEmbalse: number) {
     this.router.navigate(['/embalse-historico', idEmbalse]);
