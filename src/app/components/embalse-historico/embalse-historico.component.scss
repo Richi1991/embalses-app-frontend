@@ -1,3 +1,13 @@
+:host {
+  --bg-dark: #0b0e11;
+  --bg-card: #1e222d;
+  --text-gray: #848e9c;
+  --accent-blue: #0e66ff;
+  --accent-green: #00ff84;
+  --accent-red: #ff4566;
+  --border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .fintech-container {
   display: flex;
   flex-direction: column;
@@ -8,85 +18,96 @@
   max-width: 100vw;
   overflow-x: hidden;
   box-sizing: border-box;
+
+  .chart-main-card {
+    background: #1e222d;
+    border-radius: 8px;
+    padding: 16px;
+    width: 100%;
+    box-sizing: border-box;
+
+    .chart-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      @media (min-width: 480px) {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      h2 {
+        color: #848e9c;
+        font-size: 0.75rem;
+        margin: 0 0 8px 0;
+        text-transform: uppercase;
+      }
+
+      .main-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: baseline;
+
+        span {
+          font-size: 0.9rem;
+          color: #848e9c;
+          margin-left: 4px;
+        }
+        
+      }
+    }
+
+    .time-filters {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap; // Para que no se rompa en pantallas muy pequeñas
+
+      button {
+        background: transparent;
+        border: none;
+        color: #848e9c;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+
+        &.active {
+          background: #2962ff;
+          color: white;
+        }
+      }
+    }
+
+    .chart-body {
+      width: 100%;
+      height: 350px;
+      position: relative;
+      margin-top: 15px;
+      overflow: hidden;
+
+      canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+      }
+    }
+  }
 }
 
-// ESTILOS DEL GRÁFICO (Agrupados dentro de su tarjeta)
-.chart-main-card {
-  background: #1e222d; //
-  border-radius: 8px;
-  padding: 16px;
-  width: 100%;
-  box-sizing: border-box;
+.variation {
+  display: inline-block; // Asegura que el navegador lo trate como bloque de color
+  font-weight: bold !important;
+  font-size: 0.9rem;
+  margin-left: 10px;
 
-  .chart-header {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
-    @media (min-width: 480px) {
-      flex-direction: row;
-      justify-content: space-between;
-    }
-
-    h2 {
-      color: #848e9c;
-      font-size: 0.75rem;
-      margin: 0;
-      text-transform: uppercase;
-    }
-
-    .main-value {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: white;
-
-      span {
-        font-size: 0.9rem;
-        color: #848e9c;
-      }
-
-      .variation.positive {
-        font-size: 0.9rem;
-        margin-left: 10px;
-        color: #00ff84;
-      }
-    }
+  &.positive { 
+    color: #00ff84 !important; // Forzamos el color hexadecimal directo para probar
   }
-
-  .time-filters {
-    display: flex;
-    gap: 4px;
-
-    button {
-      background: transparent;
-      border: none;
-      color: #848e9c;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-
-      &.active {
-        background: #2962ff;
-        color: white;
-      }
-    }
-  }
-
-  .chart-body {
-    width: 100%;
-    height: 350px;
-    position: relative;
-    margin-top: 15px;
-    overflow: hidden;
-
-    @media (min-width: 768px) {
-      height: 350px;
-    }
-
-    canvas {
-      display: block;
-      width: 100% !important; //
-      height: 100% !important;
-    }
+  &.negative { 
+    color: #ff4566 !important; // Forzamos el color hexadecimal directo para probar
   }
 }

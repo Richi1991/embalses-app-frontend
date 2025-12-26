@@ -9,9 +9,9 @@ import { IonicModule } from '@ionic/angular';
 @Component({
   selector: 'app-embalse-historico',
   imports: [
-    CommonModule, 
+    CommonModule,
     DecimalPipe,
-    IonicModule 
+    IonicModule
   ],
   templateUrl: './embalse-historico.component.html',
   styleUrls: ['./embalse-historico.component.scss'],
@@ -19,22 +19,23 @@ import { IonicModule } from '@ionic/angular';
 export class EmbalseHistoricoComponent implements OnInit {
 
   @ViewChild('evolutionChart') canvas!: ElementRef;
-  
+
   chart: any;
   idEmbalse: number = 0;
   historicoCompleto: Embalse[] = [];
   datosFiltrados: Embalse[] = [];
-  
+
   // Variables para el header
-  nombreEmbalse: string = '';
-  volumenTotalHeader: number = 0;
-  porcentajeVariacion: number = 0;
-  variacionPorcentajeTotalHeader: number = 0;
-  porcentajeTotal: number = 0;
-  porcentajeTotalHeader: number = 0;
-  variacionVolumenTotal: number = 0;
-  tendenciaPositiva: boolean = true;
-  filter: string = 'ALL';
+  public nombreEmbalse: string = '';
+  public volumenTotalHeader: number = 0;
+  public porcentajeVariacion: number = 0;
+  public variacionPorcentajeTotalHeader: number = 0;
+  public porcentajeTotal: number = 0;
+  public porcentajeTotalHeader: number = 0;
+  public capacidadMaxima: number = 0;
+  public variacionVolumenTotal: number = 0;
+  public tendenciaPositiva: boolean = true;
+  public filter: string = 'ALL';
 
   constructor(private route: ActivatedRoute, private embalseService: EmbalseService) { }
 
@@ -50,7 +51,7 @@ export class EmbalseHistoricoComponent implements OnInit {
   }
 
   cargarHistoricoEmbalse(id: number) {
-   this.embalseService.getHistoricoEmbalse(id).subscribe(data => {
+    this.embalseService.getHistoricoEmbalse(id).subscribe(data => {
       this.historicoCompleto = data;
       setTimeout(() => {
         this.updateChart('ALL');
@@ -61,7 +62,7 @@ export class EmbalseHistoricoComponent implements OnInit {
   updateChart(range: string) {
     this.filter = range;
     const ahora = new Date();
-    
+
     // Lógica de filtrado por fechas
     this.datosFiltrados = this.historicoCompleto.filter(item => {
       const fecha = new Date(item.fechaRegistro);
@@ -70,7 +71,9 @@ export class EmbalseHistoricoComponent implements OnInit {
         case '1S': return fecha >= new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000);
         case '1M': return fecha >= new Date(ahora.getTime() - 30 * 24 * 60 * 60 * 1000);
         case '3M': return fecha >= new Date(ahora.getTime() - 90 * 24 * 60 * 60 * 1000);
-        case 'YTD': return new Date(ahora.getFullYear(), 0, 1);
+        case 'YTD':
+          const inicioAño = new Date(ahora.getFullYear(), 0, 1);
+          return fecha >= inicioAño;
         case '1A': return fecha >= new Date(ahora.getTime() - 365 * 24 * 60 * 60 * 1000);
         case '2A': return fecha >= new Date(ahora.getTime() - 730 * 24 * 60 * 60 * 1000);
         case '3A': return fecha >= new Date(ahora.getTime() - 1095 * 24 * 60 * 60 * 1000);
@@ -81,38 +84,49 @@ export class EmbalseHistoricoComponent implements OnInit {
 
     // Actualizar Header con el último dato disponible
     if (this.datosFiltrados.length > 0) {
-      const ultimo = this.datosFiltrados[this.datosFiltrados.length - 1];
       const primero = this.datosFiltrados[0];
-      this.nombreEmbalse = ultimo.nombre;
-      this.volumenTotalHeader = ultimo.hm3;
-      this.variacionVolumenTotal = (ultimo.hm3 - primero.hm3);
-      this.porcentajeTotalHeader = ultimo.porcentaje;
-      this.variacionPorcentajeTotalHeader = ultimo.porcentaje - primero.porcentaje;
-      // Aquí podrías calcular la variación comparando con el primero del rango
+      const ultimo = this.datosFiltrados[this.datosFiltrados.length - 1];
+
       this.porcentajeTotal = this.datosFiltrados.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
-      this.porcentajeVariacion = ultimo.porcentaje - primero.porcentaje; 
-      this.tendenciaPositiva = this.porcentajeVariacion >= 0;
-     
+      
+      this.volumenTotalHeader = ultimo.hm3;
+
+      this.capacidadMaxima = (ultimo.hm3 * 100) / ultimo.porcentaje;
+      this.nombreEmbalse = ultimo.nombre;
+
+      this.variacionVolumenTotal = ultimo.hm3 - primero.hm3;
+      
+      this.porcentajeTotalHeader = ultimo.porcentaje;
+
+      this.variacionPorcentajeTotalHeader = ultimo.porcentaje - primero.porcentaje;
+      
+      if (primero.volumen !== 0) {
+        this.porcentajeVariacion = ((ultimo.porcentaje - primero.porcentaje) / primero.volumen) * 100;
+      }
+      
+      this.tendenciaPositiva = this.variacionVolumenTotal >= 0;
     }
 
     this.renderChart();
   }
 
   renderChart() {
-    if (!this.canvas || !this.canvas.nativeElement) {
-      console.warn('El canvas aún no está disponible');
-      return;
-    }
+    if (!this.canvas || !this.canvas.nativeElement) return;
 
     if (this.chart) this.chart.destroy();
 
     // Usa la referencia canvas que definiste con @ViewChild
     const ctx = this.canvas.nativeElement.getContext('2d');
-     const valoresPorcentaje = this.datosFiltrados.map(item => {
-        const p = item.porcentaje || 0;
-        return p > 100 ? 100 : (p < 0 ? 0 : p);
-      });
-    
+
+    // 1. Calculamos los límites de los datos actuales para el modo zoom
+    const minVolumen = Math.min(...this.datosFiltrados.map(d => d.hm3));
+    const maxVolumen = Math.max(...this.datosFiltrados.map(d => d.hm3));
+
+    const valoresPorcentaje = this.datosFiltrados.map(item => {
+      const p = item.porcentaje || 0;
+      return p > 100 ? 100 : (p < 0 ? 0 : p);
+    });
+
     this.chart = new Chart(ctx!, {
       type: 'line',
       data: {
@@ -126,7 +140,7 @@ export class EmbalseHistoricoComponent implements OnInit {
           tension: 0.4,
           pointRadius: 0,
           yAxisID: 'y'
-        }, 
+        },
         {
           label: 'Porcentaje (%)',
           data: valoresPorcentaje,
@@ -140,7 +154,6 @@ export class EmbalseHistoricoComponent implements OnInit {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          // Sugerencia estética: añade un tooltip personalizado
           tooltip: {
             backgroundColor: '#1e2329',
             titleColor: '#00ff84',
@@ -162,19 +175,25 @@ export class EmbalseHistoricoComponent implements OnInit {
           y: {
             type: 'linear',
             position: 'right',
+            min: minVolumen,
+            max: maxVolumen,
+            grace: '5%',
             grid: { color: 'rgba(255, 255, 255, 0.1)' },
             ticks: {
               color: '#848e9c',
-              callback: (value) => value + ' hm³' // Añade la unidad al eje
+              callback: (value) => Number(value).toFixed(2) + ' hm³' // Añade la unidad al eje
             }
           },
           y1: {
             type: 'linear',
             position: 'left',
+            min: (minVolumen * 100) / this.capacidadMaxima,
+            max: (maxVolumen * 100) / this.capacidadMaxima,
+            grace: '5%',
             grid: { color: 'rgba(255, 255, 255, 0.1)' },
             ticks: {
               color: '#848e9c',
-              callback: (value) => value + ' %' // Añade la unidad al eje
+              callback: (value) => Number(value).toFixed(2) + ' %' // Añade la unidad al eje
             }
           }
         }

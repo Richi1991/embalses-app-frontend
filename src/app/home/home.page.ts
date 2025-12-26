@@ -279,6 +279,10 @@ export class HomePage implements OnInit {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const isFullRange = this.filter === 'ALL';
+    const minVolumen = Math.min(...datosReales.map(d => d.volumenTotal || 0));
+    const maxVolumen = Math.max(...datosReales.map(d => d.volumenTotal || 0));
+
     const labels = datosReales.map(item => {
       const fecha = new Date(item.fechaRegistro);
       const isMobile = window.innerWidth < 768; // Detectamos si es móvil
@@ -372,19 +376,23 @@ export class HomePage implements OnInit {
           y: {
             type: 'linear',
             position: 'right',
+            min: isFullRange ? 0 : minVolumen,
+            max: isFullRange ? this.volumenMaximoCuenca : maxVolumen,
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: {
               color: '#848e9c',
-              callback: (value) => value + ' hm³' // Añade la unidad al eje
+              callback: (value) => Number(value).toFixed(2) + ' hm³' // Añade la unidad al eje
             }
           },
           y1: {
             type: 'linear',
             position: 'left',
+            min: isFullRange ? 0 : (minVolumen * 100) / this.volumenMaximoCuenca,
+            max: isFullRange ? 100 : (maxVolumen * 100) / this.volumenMaximoCuenca,
             grid: { color: 'rgba(255, 255, 255, 0.1)' },
             ticks: {
               color: '#848e9c',
-              callback: (value) => value + ' %' // Añade la unidad al eje
+              callback: (value) => Number(value).toFixed(2) + ' %' // Añade la unidad al eje
             }
           }
         },

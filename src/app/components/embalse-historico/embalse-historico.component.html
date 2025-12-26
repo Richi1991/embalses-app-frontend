@@ -7,10 +7,11 @@
           <div class="main-value">
             {{ volumenTotalHeader | number:'1.2-2' }} <span>hm³</span>
             <small [class]="tendenciaPositiva ? 'variation positive' : 'variation negative'">
-              {{ tendenciaPositiva ? '+' : '' }}{{ variacionVolumenTotal | number:'1.2-2' }}hm3
+              {{ tendenciaPositiva ? '+' : '' }}{{ variacionVolumenTotal | number:'1.2-2' }}hm³
             </small>
           </div>
-           <div class="main-value">
+
+          <div class="main-value">
             {{ porcentajeTotalHeader | number:'1.2-2' }} <span>%</span>
             <small [class]="tendenciaPositiva ? 'variation positive' : 'variation negative'">
               {{ tendenciaPositiva ? '+' : '' }}{{ variacionPorcentajeTotalHeader | number:'1.2-2' }}%
