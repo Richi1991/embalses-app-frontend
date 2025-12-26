@@ -80,7 +80,7 @@ export class EmbalseHistoricoComponent implements OnInit {
         case 'ALL': return fecha >= new Date(ahora.setFullYear(ahora.getFullYear() - 5));
         default: return true;
       }
-    });
+    }); 
 
     // Actualizar Header con el último dato disponible
     if (this.datosFiltrados.length > 0) {
@@ -88,7 +88,7 @@ export class EmbalseHistoricoComponent implements OnInit {
       const ultimo = this.datosFiltrados[this.datosFiltrados.length - 1];
 
       this.porcentajeTotal = this.datosFiltrados.reduce((acc, e) => acc + (e.porcentaje || 0), 0);
-      
+
       this.volumenTotalHeader = ultimo.hm3;
 
       this.capacidadMaxima = (ultimo.hm3 * 100) / ultimo.porcentaje;
