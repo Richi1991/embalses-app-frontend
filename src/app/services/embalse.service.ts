@@ -35,6 +35,8 @@ export class EmbalseService {
   private apiUrlHistoricoCuencaDiario = 'https://embalses-api.onrender.com/api/embalses/historico-cuenca-diario';
   private apiUrlHistoricoEmbalse = 'https://embalses-api.onrender.com/api/embalses/obtener_historico_embalse';
 
+
+
   // Variables de caché
   private cacheHistoricoLargo: HistoricoCuenca[] | null = null;
   private cacheHistoricoDiario: HistoricoCuenca[] | null = null;
@@ -66,6 +68,8 @@ export class EmbalseService {
     const url = `${this.apiUrlHistoricoEmbalse}${idEmbalse}`;
     return this.http.get<Embalse[]>(url);
   }
+
+ 
 
   clearCache() {
     this.cacheHistoricoLargo = null;

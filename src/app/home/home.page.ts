@@ -7,13 +7,14 @@ import { EmbalseService, Embalse } from '../services/embalse.service';
 import { addIcons } from 'ionicons';
 import { Router } from '@angular/router';
 import { trendingUpOutline, trendingDownOutline, waterOutline } from 'ionicons/icons';
+import { MeteorologyMapComponent } from '../components/meteorology-map/meteorology-map.component';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule], // Importante para usar *ngFor y componentes de Ionic
+  imports: [IonicModule, CommonModule, MeteorologyMapComponent], // Importante para usar *ngFor y componentes de Ionic
 })
 export class HomePage implements OnInit {
   private embalseService: EmbalseService = inject(EmbalseService);
