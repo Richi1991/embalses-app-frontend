@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { EstacionesService } from './estaciones.service';
 
 export interface Embalse {
   idEmbalse: number;
@@ -34,8 +35,6 @@ export class EmbalseService {
   private apiUrlHistoricoCuenca = 'https://embalses-api.onrender.com/api/embalses/historico-cuenca';
   private apiUrlHistoricoCuencaDiario = 'https://embalses-api.onrender.com/api/embalses/historico-cuenca-diario';
   private apiUrlHistoricoEmbalse = 'https://embalses-api.onrender.com/api/embalses/obtener_historico_embalse';
-
-
 
   // Variables de caché
   private cacheHistoricoLargo: HistoricoCuenca[] | null = null;
