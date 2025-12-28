@@ -28,7 +28,12 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
     const seguraCenter: L.LatLngExpression = [38, -1.5];
 
     // Inicializar el objeto mapa
-    this.map = L.map('mapId').setView(seguraCenter, 9);
+    this.map = L.map('mapId', {
+      zoomSnap: 1,
+      zoomDelta: 1,
+      preferCanvas: true
+    }).setView(seguraCenter, 9);
+
 
     // Añadir los "tiles" (las imágenes del mapa)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -41,6 +46,10 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
     this.loadCuenca();
 
     this.cargarDatosEstaciones();
+
+    this.map.on('zoomend moveend', () => {
+      this.map.invalidateSize();
+    });
 
 
     // Forzar a que Leaflet recalcule el tamaño (evita fallos de renderizado)
@@ -84,17 +93,15 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
             // Crear un icono HTML personalizado
             const customIcon = L.divIcon({
-              className: 'custom-precip-icon', // Clase para el CSS
-              html: `
-              <div class="marker-circle" style="background-color: ${colorFondo}">
-                <span>${valor24h}</span>
-              </div>`,
-              iconSize: [30, 30], // Tamaño del contenedor
-              iconAnchor: [15, 15] // Centrado
+              className: 'custom-precip-icon',
+              html: `<div class="marker-circle" style="background-color: ${colorFondo}">
+            <span>${valor24h}</span> </div>`,
+              iconSize: [24, 24], // 👈 Más pequeño
+              iconAnchor: [12, 12]
             });
 
-            const marcador = L.marker([estacion.latitud, estacion.longitud], { 
-              icon: customIcon 
+            const marcador = L.marker([estacion.latitud, estacion.longitud], {
+              icon: customIcon
             });
 
             marcador.bindPopup(`

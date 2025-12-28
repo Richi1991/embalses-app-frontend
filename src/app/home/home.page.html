@@ -1,12 +1,19 @@
 <ion-content style="--background: #0b0e11;">
   <div class="fintech-container">
 
-  
 
-      <div style="flex: 1; width: 100%; position: relative; min-height: 400px;">
-        <app-meteorology-map></app-meteorology-map>
-      </div>
+
+    <div class="map-card-top">
+    <div class="card-title total_embalses">
+      <ion-icon name="rainy-outline"></ion-icon>
+      <span>Precipitaciones últimas 24h</span>
+    </div>
     
+    <div class="map-wrapper">
+      <app-meteorology-map></app-meteorology-map>
+    </div>
+  </div>
+
 
     <div class="chart-main-card">
       <div class="chart-header">

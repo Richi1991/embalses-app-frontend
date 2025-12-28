@@ -1,4 +1,55 @@
 // VARIABLES (Ahorra espacio y facilita cambios)
+.map-card-top {
+  margin-bottom: 10px;
+  padding: 16px;
+  background: var(--bg-card); // 👈 Usa la variable global para que el color sea idéntico
+  border-radius: 8px; // 👈 Usa el mismo radio que .fintech-card
+  border: var(--border); // 👈 Usa la misma variable de borde
+
+  .map-wrapper {
+    width: 100%;
+    height: 450px; // Altura controlada para que no rompa el layout
+    position: relative;
+    margin-top: 15px;
+    border-radius: 4px; // Un radio menor para el mapa interno
+    overflow: hidden;
+    display: block;
+    border: none; // Sombra interna para profundidad
+  }
+
+  .leaflet-container {
+    background: #000;
+    /* o el color de tu mapa */
+  }
+
+  .leaflet-tile {
+    border: none !important;
+    outline: none !important;
+    margin: -1px !important;
+    /* 🔥 CLAVE */
+  }
+}
+
+// Asegúrate de que el componente ocupe todo el wrapper
+app-meteorology-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  contain: layout; // Optimiza el rendimiento de Leaflet dentro de Ionic
+}
+
+.main-map-wrapper {
+  width: 100%;
+  height: 70vh;
+  /* Protagonismo claro: 70% de la altura visible */
+  position: relative;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  overflow: hidden;
+  /* Para que el mapa respete el redondeo de las esquinas */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
 :host {
   --bg-dark: #0b0e11;
   --bg-card: #1e222d;
@@ -303,12 +354,4 @@
       flex: 1;
     }
   }
-}
-
-// home.page.scss
-app-meteorology-map {
-  display: block;
-  width: 100%;
-  height: 400px; // O la altura que desees
-  contain: content; // Ayuda a Ionic con el renderizado de componentes pesados
 }

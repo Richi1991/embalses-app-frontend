@@ -1,31 +1,34 @@
 /* 1. Dimensiones del mapa */
 .map-container {
   width: 100%;
-  height: 50vh; /* Media pantalla */
+  height: 100%; /* Media pantalla */
   min-height: 400px;
   background-color: #f8f9fa;
   border-bottom: 2px solid #00ffcc; /* Estética acorde a tu cuenca */
+  outline: 1px solid transparent;
+  box-shadow: 0 0 0 1px transparent;
+  border: none;
 }
 
 /* 2. Estilos para el número dentro del círculo */
 /* Usamos ::ng-deep porque Leaflet crea estos elementos fuera del scope de Angular */
 ::ng-deep .custom-precip-icon {
   .marker-circle {
-    width: 30px;
-    height: 30px;
+    width: 24px;   /* 👈 Consistente con el TypeScript */
+    height: 24px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1.5px solid white;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255, 255, 255, 0.6); // Borde más fino y translúcido
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     
     span {
       color: white;
-      font-size: 10px;
-      font-weight: bold;
-      text-align: center;
-      line-height: 1;
+      font-size: 9px;  /* 👈 Fuente más pequeña pero legible */
+      font-weight: 600;
+      text-shadow: none; 
     }
   }
 }
+

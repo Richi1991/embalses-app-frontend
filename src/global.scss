@@ -44,6 +44,18 @@ html, body {
   height: 100% !important;
 }
 
+/* FIX definitivo para líneas blancas en Leaflet */
+.leaflet-container {
+  background: #0b1220; /* o el color base de tu dashboard */
+}
+
+.leaflet-tile {
+  border: none !important;
+  outline: none !important;
+  margin: -1px !important;   /* 🔥 CLAVE */
+}
+
+
 /* Asegura que el contenedor de Ionic no bloquee el scroll */
 ion-content {
   --overflow: auto;
