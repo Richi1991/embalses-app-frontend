@@ -1,70 +1,68 @@
-import { Component, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular'; // Importante para ion-spinner
-import { CommonModule } from '@angular/common'; // Opcional si usas el nuevo @if
-import * as maplibregl from 'maplibre-gl';
-import { EstacionesService } from '../../services/estaciones-service';
+import { Component, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-meteorology-map',
-  templateUrl: './meteorology-map.component.html',
-  styleUrls: ['./meteorology-map.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [CommonModule, IonicModule],
+  templateUrl: './meteorology-map.component.html',
+  styleUrls: ['./meteorology-map.component.scss']
 })
-export class MeteorologyMapComponent implements AfterViewInit {
-  private map: maplibregl.Map | undefined;
-  public mapReady = false; // Variable para controlar el spinner
-
-  constructor(private estacionesService: EstacionesService) { }
+export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('mapContainer') mapContainer!: ElementRef;
+  private map!: L.Map;
 
   ngAfterViewInit() {
-    this.map = new maplibregl.Map({
-      container: 'map-container',
-      style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-      center: [-1.2, 38.0],
-      zoom: 7,
-      pitch: 0,
-      bearing: 0,
-      // ESTO ES CLAVE PARA MÓVIL:
-      touchZoomRotate: true,
-      dragRotate: false, // Evita que giren el mapa sin querer con dos dedos
-      cooperativeGestures: true // Requiere dos dedos para mover el mapa, permitiendo hacer scroll con uno
-    });
-
-    this.map.on('load', () => {
-      this.mapReady = true; // Ocultamos el spinner cuando el mapa carga
-      this.cargarEstaciones();
-    });
+    this.initMap();
   }
 
-  private cargarEstaciones() {
-    this.estacionesService.getEstacionesMeteorologicas().subscribe(estaciones => {
-      estaciones.forEach(est => {
-        const lat = parseFloat(est.latitud.replace(',', '.'));
-        const lon = parseFloat(est.longitud.replace(',', '.'));
+  private initMap(): void {
 
-        if (!isNaN(lat) && !isNaN(lon)) {
-          // Crear un marcador moderno personalizado (un simple div con CSS)
-          const el = document.createElement('div');
-          el.className = 'marker-estacion';
-          el.style.backgroundColor = '#00e676'; // Verde como tu gráfica
-          el.style.width = '12px';
-          el.style.height = '12px';
-          el.style.borderRadius = '50%';
-          el.style.boxShadow = '0 0 10px #00e676';
+    const seguraCenter: L.LatLngExpression = [38, -1.5];
 
-          new maplibregl.Marker(el)
-            .setLngLat([lon, lat])
-            .setPopup(new maplibregl.Popup({ offset: 25 })
-              .setHTML(`<h3>${est.nombre}</h3><p>Altitud: ${est.altitud}m</p>`))
-            .addTo(this.map!);
-        }
-      });
-    });
+    // Inicializar el objeto mapa
+    this.map = L.map('mapId').setView(seguraCenter, 9);
+
+    // Añadir los "tiles" (las imágenes del mapa)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      noWrap: true, 
+      bounds: [[-90, -180], [90, 180]]
+    }).addTo(this.map);
+
+    // Coordenadas del centro de la Cuenca del Segura
+    this.loadCuenca();
+    
+    // Forzar a que Leaflet recalcule el tamaño (evita fallos de renderizado)
+    setTimeout(() => {
+      this.map.invalidateSize();
+    }, 200);
+  }
+
+  private loadCuenca() {
+    fetch('assets/data/cuenca_segura.json')
+      .then(res => res.json())
+      .then(data => {
+        const cuencaLayer = L.geoJSON(data, {
+          style: {
+            color: '#00ffcc', // Color de tu dashboard
+            weight: 2,
+            fillOpacity: 0.1,
+            fillColor: '#00ffcc'
+          }
+        }).addTo(this.map);
+
+        // Ajustar la cámara automáticamente a la cuenca
+        this.map.fitBounds(cuencaLayer.getBounds(), { padding: [30, 30], maxZoom: 8 });
+      })
+      .catch(err => console.warn('Archivo JSON no encontrado aún, cargando mapa base.'));
   }
 
   ngOnDestroy() {
-    this.map?.remove();
+    if (this.map) {
+      this.map.remove();
+    }
   }
-
 }

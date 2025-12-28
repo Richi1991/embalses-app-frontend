@@ -10,17 +10,33 @@
 }
 
 .fintech-container {
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 12px;
-  background-color: var(--bg-dark);
-  width: 100%;
-  box-sizing: border-box;
+  gap: 20px;
+}
+
+.map-card-top {
+  margin-bottom: 10px; // Espacio con la gráfica de abajo
+  padding: 16px;
+  background: #15191c;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  .map-wrapper {
+    width: 100%;
+    height: 450px;
+    position: relative;
+    margin-top: 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: block; // Asegura que no se comporte como inline
+  }
 }
 
 // ESTILOS COMUNES DE TARJETAS (Optimizado)
-.chart-main-card, .fintech-card {
+.chart-main-card,
+.fintech-card {
   background: var(--bg-card);
   border-radius: 8px;
   padding: 16px;
@@ -45,25 +61,34 @@
     background: linear-gradient(to top, var(--accent-blue), #4facfe);
     position: relative;
     transition: height 1s ease-out;
-    
+
     .wave {
       position: absolute;
       top: -2px;
       width: 200%;
       height: 4px;
-      background: rgba(255,255,255,0.4);
+      background: rgba(255, 255, 255, 0.4);
       animation: waveMove 2s infinite linear;
     }
   }
 }
-@keyframes waveMove { to { transform: translateX(-50%); } }
+
+@keyframes waveMove {
+  to {
+    transform: translateX(-50%);
+  }
+}
 
 // CABECERAS
 .chart-header {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  @media (min-width: 480px) { flex-direction: row; justify-content: space-between; }
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+    justify-content: space-between;
+  }
 }
 
 .card-title {
@@ -73,36 +98,67 @@
   font-weight: bold;
   font-size: 1.1rem;
   margin-bottom: 15px;
-  &.subidas { color: var(--accent-green); }
-  &.bajadas { color: var(--accent-red); }
-  &.total_embalses { color: var(--accent-blue); }
+
+  &.subidas {
+    color: var(--accent-green);
+  }
+
+  &.bajadas {
+    color: var(--accent-red);
+  }
+
+  &.total_embalses {
+    color: var(--accent-blue);
+  }
 }
 
 .main-value {
   font-size: 1.8rem;
   font-weight: bold;
   color: #fff;
-  span { font-size: 0.9rem; color: var(--text-gray); }
+
+  span {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+  }
 }
 
 // BADGES Y VARIACIONES
-.variation, .badge { font-weight: bold; }
-.variation.positive, .badge.positive { color: var(--accent-green); }
-.variation.negative, .badge.negative { color: var(--accent-red); }
+.variation,
+.badge {
+  font-weight: bold;
+}
+
+.variation.positive,
+.badge.positive {
+  color: var(--accent-green);
+}
+
+.variation.negative,
+.badge.negative {
+  color: var(--accent-red);
+}
 
 .badge {
   font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 4px;
   margin-top: 4px;
-  &.positive { background: rgba(0, 255, 132, 0.15); }
-  &.negative { background: rgba(255, 69, 102, 0.15); }
+
+  &.positive {
+    background: rgba(0, 255, 132, 0.15);
+  }
+
+  &.negative {
+    background: rgba(255, 69, 102, 0.15);
+  }
 }
 
 // BOTONES FILTRO
 .time-filters {
   display: flex;
   gap: 4px;
+
   button {
     background: transparent;
     border: none;
@@ -110,37 +166,82 @@
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.8rem;
-    &.active { background: #2962ff; color: #fff; }
+
+    &.active {
+      background: #2962ff;
+      color: #fff;
+    }
   }
 }
 
 // LISTAS Y TABLAS
-.header-row, .fintech-row { display: flex; align-items: center; justify-content: space-between; }
+.header-row,
+.fintech-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
 .header-row {
   padding: 10px 0;
   border-bottom: var(--border);
+
   span {
     font-size: 0.7rem;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255, 255, 255, 0.4);
     font-weight: bold;
   }
-  .label-nombre { flex: 2; padding-left: 25px; }
-  .label-porcentaje { flex: 1; text-align: center; }
-  .label-stats { flex: 1.5; text-align: right; }
+
+  .label-nombre {
+    flex: 2;
+    padding-left: 25px;
+  }
+
+  .label-porcentaje {
+    flex: 1;
+    text-align: center;
+  }
+
+  .label-stats {
+    flex: 1.5;
+    text-align: right;
+  }
 }
 
 .fintech-row {
   padding: 12px 0;
   border-bottom: 1px solid #2a2e39;
-  .info-group { flex: 2; display: flex; align-items: center; }
-  .nombre { 
-    color: #fff; font-weight: 600; font-size: 0.85rem; cursor: pointer;
-    &:hover { text-decoration: underline; color: #2962ff; }
+
+  .info-group {
+    flex: 2;
+    display: flex;
+    align-items: center;
   }
-  .rank { color: var(--text-gray); width: 20px; font-size: 0.8rem; }
-  .center-pill { flex: 1; text-align: center; }
+
+  .nombre {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+      color: #2962ff;
+    }
+  }
+
+  .rank {
+    color: var(--text-gray);
+    width: 20px;
+    font-size: 0.8rem;
+  }
+
+  .center-pill {
+    flex: 1;
+    text-align: center;
+  }
+
   .porcentaje-badge {
     background: rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.9);
@@ -150,8 +251,20 @@
     font-size: 0.8rem;
     border: var(--border);
   }
-  .stats { flex: 1.5; text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
-  .volumen { color: #fff; font-family: monospace; font-size: 0.9rem; }
+
+  .stats {
+    flex: 1.5;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .volumen {
+    color: #fff;
+    font-family: monospace;
+    font-size: 0.9rem;
+  }
 }
 
 // GRÁFICO
@@ -160,15 +273,42 @@
   height: 250px;
   margin-top: 15px;
   position: relative;
-  @media (min-width: 768px) { height: 350px; }
-  canvas { width: 100% !important; height: 100% !important; }
+
+  @media (min-width: 768px) {
+    height: 350px;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
 }
 
 // UTILIDADES
-@media (max-width: 600px) { .hide-mobile { display: none !important; } }
+@media (max-width: 600px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
 .cards-wrapper {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  @media (min-width: 768px) { flex-direction: row; & > div { flex: 1; } }
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+
+    &>div {
+      flex: 1;
+    }
+  }
+}
+
+// home.page.scss
+app-meteorology-map {
+  display: block;
+  width: 100%;
+  height: 400px; // O la altura que desees
+  contain: content; // Ayuda a Ionic con el renderizado de componentes pesados
 }
