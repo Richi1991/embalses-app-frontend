@@ -74,23 +74,29 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
         this.jsonEstaciones = estaciones;
         this.ubicacionEstaciones.clearLayers();
 
-        // Generamos un array temporal para procesar más rápido
-        const nuevosMarcadores: L.Layer[] = [];
-
         this.jsonEstaciones.forEach((estacion: any) => {
 
           if (estacion.latitud && estacion.longitud) {
 
             const dto = estacion.precipitacionesDTO;
+            const valor24h = dto.precipitacion24h || 0;
+            const colorFondo = this.getColorLluvia(valor24h);
 
-            const marcador = L.circleMarker([estacion.latitud, estacion.longitud], {
-              radius: 7,
-              fillColor: this.getColorLluvia(dto.precipitacion24h),
-              fillOpacity: 0.8,
-              stroke: true,
-              color: '#ffffff', // Borde blanco fino para que resalten
-              weight: 1
+            // Crear un icono HTML personalizado
+            const customIcon = L.divIcon({
+              className: 'custom-precip-icon', // Clase para el CSS
+              html: `
+              <div class="marker-circle" style="background-color: ${colorFondo}">
+                <span>${valor24h}</span>
+              </div>`,
+              iconSize: [30, 30], // Tamaño del contenedor
+              iconAnchor: [15, 15] // Centrado
             });
+
+            const marcador = L.marker([estacion.latitud, estacion.longitud], { 
+              icon: customIcon 
+            });
+
             marcador.bindPopup(`
             <div style="min-width: 150px;">
               <strong style="color: #2c3e50;">${estacion.nombre}</strong><br>
