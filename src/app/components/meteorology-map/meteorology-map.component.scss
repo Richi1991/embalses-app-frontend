@@ -32,3 +32,17 @@
   }
 }
 
+#mapId {
+  // Filtro para suavizar la unión de los colores y crear el efecto de área
+  ::ng-deep .leaflet-canvas-layer {
+    filter: blur(4px) saturate(1.2); 
+    // blur: funde los círculos en áreas continuas
+    // saturate: hace que los colores sean vivos como en AEMET
+  }
+
+  // Aseguramos que los popup no se vean borrosos
+  ::ng-deep .leaflet-popup-pane {
+    filter: none;
+  }
+}
+

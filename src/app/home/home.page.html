@@ -1,19 +1,24 @@
 <ion-content style="--background: #0b0e11;">
   <div class="fintech-container">
 
-
-
     <div class="map-card-top">
-    <div class="card-title total_embalses">
-      <ion-icon name="rainy-outline"></ion-icon>
-      <span>Precipitaciones últimas 24h</span>
-    </div>
-    
-    <div class="map-wrapper">
-      <app-meteorology-map></app-meteorology-map>
-    </div>
-  </div>
+      <div class="card-title total_embalses">
+        <ion-icon name="rainy-outline"></ion-icon>
+        <span>Precipitaciones últimas 24h</span>
+      </div>
 
+      <div class="map-wrapper">
+       <!-- <div class="time-filters">
+          <button [class.active]="mapaMeteorologico.rango === '1 day'"
+                  (click)="mapaMeteorologico.cambiarRango('1 day')">1d</button>
+          <button [class.active]="mapaMeteorologico.rango === '1 week'"
+                  (click)="mapaMeteorologico.cambiarRango('1 week')">7d</button>
+          <button [class.active]="mapaMeteorologico.rango === '1 month'"
+                  (click)="mapaMeteorologico.cambiarRango('1 month')">1m</button>
+        </div>-->
+        <app-meteorology-map #mapaMeteorologico></app-meteorology-map>
+      </div>
+    </div>
 
     <div class="chart-main-card">
       <div class="chart-header">
@@ -64,12 +69,12 @@
           <span>Top 5 Subidas</span>
         </div>
         <div class="time-filters">
-          <button (click)="cargarSeccion('1 day', 'subidas')" [class.active]="filtroSubidas === '1D'">1D</button>
-          <button (click)="cargarSeccion('7 days', 'subidas')" [class.active]="filtroSubidas === '7D'">7D</button>
-          <button (click)="cargarSeccion('14 days', 'subidas')" [class.active]="filtroSubidas === '14D'">14D</button>
-          <button (click)="cargarSeccion('1 month', 'subidas')" [class.active]="filtroSubidas === '1M'">1M</button>
-          <button (click)="cargarSeccion('3 month', 'subidas')" [class.active]="filtroSubidas === '3M'">3M</button>
-          <button (click)="cargarSeccion('1 year', 'subidas')" [class.active]="filtroSubidas === '1A'">1A</button>
+          <button (click)="cargarSeccion('1 day', 'subidas')" [class.active]="filtroSubidas === '1 day'">1D</button>
+          <button (click)="cargarSeccion('7 days', 'subidas')" [class.active]="filtroSubidas === '7 days'">7D</button>
+          <button (click)="cargarSeccion('14 days', 'subidas')" [class.active]="filtroSubidas === '14 days'">14D</button>
+          <button (click)="cargarSeccion('1 month', 'subidas')" [class.active]="filtroSubidas === '1 month'">1M</button>
+          <button (click)="cargarSeccion('3 month', 'subidas')" [class.active]="filtroSubidas === '3 month'">3M</button>
+          <button (click)="cargarSeccion('1 year', 'subidas')" [class.active]="filtroSubidas === '1 year'">1A</button>
         </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>
@@ -98,12 +103,12 @@
           <span>Top 5 Bajadas</span>
         </div>
         <div class="time-filters">
-          <button (click)="cargarSeccion('1 day', 'bajadas')" [class.active]="filtroBajadas === '1D'">1D</button>
-          <button (click)="cargarSeccion('7 days', 'bajadas')" [class.active]="filtroBajadas === '7D'">7D</button>
-          <button (click)="cargarSeccion('14 days', 'bajadas')" [class.active]="filtroBajadas === '14D'">14D</button>
-          <button (click)="cargarSeccion('1 month', 'bajadas')" [class.active]="filtroBajadas === '1M'">1M</button>
-          <button (click)="cargarSeccion('3 month', 'bajadas')" [class.active]="filtroBajadas === '3M'">3M</button>
-          <button (click)="cargarSeccion('1 year', 'bajadas')" [class.active]="filtroBajadas === '1A'">1A</button>
+          <button (click)="cargarSeccion('1 day', 'bajadas')" [class.active]="filtroBajadas === '1 day'">1D</button>
+          <button (click)="cargarSeccion('7 days', 'bajadas')" [class.active]="filtroBajadas === '7 days'">7D</button>
+          <button (click)="cargarSeccion('14 days', 'bajadas')" [class.active]="filtroBajadas === '14 days'">14D</button>
+          <button (click)="cargarSeccion('1 month', 'bajadas')" [class.active]="filtroBajadas === '1 month'">1M</button>
+          <button (click)="cargarSeccion('3 month', 'bajadas')" [class.active]="filtroBajadas === '3 month'">3M</button>
+          <button (click)="cargarSeccion('1 year', 'bajadas')" [class.active]="filtroBajadas === '1 year'">1A</button>
         </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>
@@ -134,15 +139,12 @@
           <span>Estado Embalses Individual</span>
         </div>
         <div class="time-filters">
-          <button (click)="cargarSeccion('1 day', 'individual')" [class.active]="filtroIndividual === '1D'">1D</button>
-          <button (click)="cargarSeccion('7 days', 'individual')" [class.active]="filtroIndividual === '7D'">7D</button>
-          <button (click)="cargarSeccion('14 days', 'individual')"
-            [class.active]="filtroIndividual === '14D'">14D</button>
-          <button (click)="cargarSeccion('1 month', 'individual')"
-            [class.active]="filtroIndividual === '1M'">1M</button>
-          <button (click)="cargarSeccion('3 month', 'individual')"
-            [class.active]="filtroIndividual === '3M'">3M</button>
-          <button (click)="cargarSeccion('1 year', 'individual')" [class.active]="filtroIndividual === '1A'">1A</button>
+          <button (click)="cargarSeccion('1 day', 'individual')" [class.active]="filtroIndividual === '1 day'">1D</button>
+          <button (click)="cargarSeccion('7 days', 'individual')" [class.active]="filtroIndividual === '7 days'">7D</button>
+          <button (click)="cargarSeccion('14 days', 'individual')" [class.active]="filtroIndividual === '14 days'">14D</button>
+          <button (click)="cargarSeccion('1 month', 'individual')" [class.active]="filtroIndividual === '1 month'">1M</button>
+          <button (click)="cargarSeccion('3 month', 'individual')" [class.active]="filtroIndividual === '3 month'">3M</button>
+          <button (click)="cargarSeccion('1 year', 'individual')" [class.active]="filtroIndividual === '1 year'">1A</button>
         </div>
         <div class="header-row">
           <span class="label-nombre">Embalse</span>

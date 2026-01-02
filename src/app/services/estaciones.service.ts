@@ -24,6 +24,39 @@ export interface Precipitaciones {
   precipitacionYtd: number;
 }
 
+export interface HistoricoPrecipitaciones {
+  indicativo: string;
+  nombre: string;
+  valor_24h: number;
+  fecha_registro: Date;
+  tmax: number;
+  tmin: number;
+  tmed: number;
+  estacion: Estacion;
+}
+
+export interface PrecipitacionAcumulada {
+  indicativo: string;
+  nombre: string;
+  valor_acumulado: number;
+  lat: number;
+  lng: number;
+}
+
+export interface PrecipitacionMapa {
+  getRes_geometry: string;
+  getRes_indicativo: string;
+  getRes_nombre: string;
+  getRes_mm_acumulados: string;
+  getRes_tipo: string;
+}
+
+interface PuntoIDW {
+  lat: number;
+  lng: number;
+  mm: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -33,8 +66,15 @@ export class EstacionesService {
 
     private apiUrlObtenerEstacionesAndPrecipitaciones = 'https://embalses-api.onrender.com/api/weather/precipitaciones/get_precipitaciones_last_value';
 
-     getEstacionesAndPrecipitaciones(): Observable<Estacion[]> {
+    private apiUrlObtenerValoresPrecipitacionesAcumulados = 'https://embalses-api.onrender.com/api/weather/historicoprecipitaciones/obtener_valores_precipitaciones_acumulados';
+
+    getEstacionesAndPrecipitaciones(): Observable<Estacion[]> {
      const url = this.apiUrlObtenerEstacionesAndPrecipitaciones;
       return this.http.get<Estacion[]>(url);
-  }
+    }
+
+    getDatosMapaPrecipitaciones(rango: string): Observable<PrecipitacionAcumulada[]> {
+      const url = this.apiUrlObtenerValoresPrecipitacionesAcumulados;
+      return this.http.get<PrecipitacionAcumulada[]>(`${url}/${rango}`);
+    }
 }

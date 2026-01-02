@@ -105,6 +105,7 @@ export class HomePage implements OnInit {
   }
 
   cargarSeccion(intervalo: string, seccion: 'subidas' | 'bajadas' | 'individual') {
+
     // Actualizamos el filtro visual de la sección específica
     if (seccion === 'subidas') this.filtroSubidas = intervalo;
     if (seccion === 'bajadas') this.filtroBajadas = intervalo;
