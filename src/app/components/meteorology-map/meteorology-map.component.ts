@@ -139,20 +139,44 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
     return '#bdc3c7'; // Por defecto gris si algo fallara
   }
 
-  getPrecipitationColor(d: number): string {
-    return d > 200 ? '#990033' : // Granate
-      d > 160 ? '#ff00ff' : // Magenta
-        d > 140 ? '#cc33ff' : // Morado fuerte
-          d > 100 ? '#9966ff' : // Violeta
-            d > 80 ? '#02027eff' : // Azul casi negro
-              d > 70 ? '#000099' : // Azul oscuro
-                d > 60 ? '#0066ff' : // Azul medio
-                  d > 50 ? '#3399ff' : // Azul claro
-                    d > 40 ? '#66cccc' : // Cian / Azul verdoso
-                      d > 30 ? '#99ff99' : // Verde claro
-                        d > 20 ? '#ccff99' : // Verde amarillento
-                          d > 10 ? '#ffffcc' : // Amarillo muy pálido
-                            'transparent';
+  getPrecipitationColor(valor: number, rango: '7 days' | '1 month' | '3 months' | '6 months ' | '1 year '): string {
+
+    // 1. Definimos los umbrales para cada periodo
+    const escalas: Record<string, number[]> = {
+      '7 days': [100, 80, 70, 50, 40, 35, 30, 25, 20, 15, 10, 5],
+      '1 month': [250, 200, 175, 150, 125, 100, 80, 60, 40, 30, 10, 5],
+      '3 months': [500, 300, 250, 200, 150, 125, 100, 80, 60, 40, 10, 5],
+      '6 months': [600, 400, 300, 250, 200, 150, 120, 80, 60, 40, 10, 5],
+      '1 year': [650, 500, 400, 350, 325, 280, 250, 200, 180, 150, 120, 80]
+    };
+
+    // 2. Definimos tu paleta de colores (se mantiene constante)
+    const colores = [
+      '#990033', // Granate (Máximo)
+      '#ff00ff', // Magenta
+      '#cc33ff', // Morado fuerte
+      '#9966ff', // Violeta
+      '#02027eff', // Azul casi negro
+      '#000099', // Azul oscuro
+      '#0066ff', // Azul medio
+      '#3399ff', // Azul claro
+      '#66cccc', // Cian
+      '#99ff99', // Verde claro
+      '#ccff99', // Verde amarillento
+      '#ffffcc'  // Amarillo muy pálido (Mínimo)
+    ];
+
+    // 3. Obtenemos los umbrales según el rango elegido
+    const umbrales = escalas[rango];
+
+    // 4. Buscamos el color correspondiente
+    for (let i = 0; i < umbrales.length; i++) {
+      if (valor > umbrales[i]) {
+        return colores[i];
+      }
+    }
+
+    return 'transparent'; // Si no llega al mínimo
   }
 
   ngOnDestroy() {
@@ -170,7 +194,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
         this.jsonPrecipitaciones.forEach((precipitacionAcumulada: any) => {
           if (precipitacionAcumulada.lat && precipitacionAcumulada.lng) {
-            const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado);
+            const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado, rango as "7 days" | "1 month" | "3 months" | "6 months " | "1 year ");
 
             // Crear un icono HTML personalizado
             const customIcon = L.divIcon({
@@ -185,7 +209,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
               icon: customIcon
             });
 
-             marcador.bindPopup(`
+            marcador.bindPopup(`
             <div style="min-width: 150px;">
               <strong style="color: #2c3e50;">${precipitacionAcumulada.nombre}</strong><br>
               <table style="width: 100%; margin-top: 5px; border-collapse: collapse;">
