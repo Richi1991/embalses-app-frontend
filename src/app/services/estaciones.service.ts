@@ -64,16 +64,16 @@ export class EstacionesService {
   
     private http = inject(HttpClient);
 
-    private apiUrlObtenerEstacionesAndPrecipitaciones = 'https://embalses-api.onrender.com/api/weather/precipitaciones/get_precipitaciones_last_value';
+    private apiUrlObtenerEstacionesAndPrecipitacionesLast24hours = 'https://embalses-api.onrender.com/api/weather/precipitaciones/get_precipitaciones_last_value';
 
     private apiUrlObtenerValoresPrecipitacionesAcumulados = 'https://embalses-api.onrender.com/api/weather/historicoprecipitaciones/obtener_valores_precipitaciones_acumulados';
 
-    getEstacionesAndPrecipitaciones(): Observable<Estacion[]> {
-     const url = this.apiUrlObtenerEstacionesAndPrecipitaciones;
+    getEstacionesAndPrecipitacionesUltimas24h(): Observable<Estacion[]> {
+     const url = this.apiUrlObtenerEstacionesAndPrecipitacionesLast24hours;
       return this.http.get<Estacion[]>(url);
     }
 
-    getDatosMapaPrecipitaciones(rango: string): Observable<PrecipitacionAcumulada[]> {
+    getHistoricoPrecipitaciones(rango: string): Observable<PrecipitacionAcumulada[]> {
       const url = this.apiUrlObtenerValoresPrecipitacionesAcumulados;
       return this.http.get<PrecipitacionAcumulada[]>(`${url}/${rango}`);
     }
