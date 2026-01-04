@@ -19,6 +19,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   private jsonPrecipitaciones: any[] = [];
   private estacionesService: EstacionesService = inject(EstacionesService);
   private ubicacionEstaciones: L.LayerGroup = L.layerGroup();
+  private colorTexto: String;
 
   public rango: string = 'mes';
 
@@ -143,11 +144,11 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
     // 1. Definimos los umbrales para cada periodo
     const escalas: Record<string, number[]> = {
-      '1 week': [100, 80, 70, 50, 40, 35, 30, 25, 20, 15, 10, 5],
-      '1 month': [250, 200, 175, 150, 125, 100, 80, 60, 40, 30, 10, 5],
+      '1 week': [100, 80, 70, 50, 40, 35, 30, 25, 20, 15, 10, 1],
+      '1 month': [250, 200, 175, 150, 125, 100, 80, 60, 40, 30, 10, 1],
       '3 months': [500, 300, 250, 200, 150, 125, 100, 80, 60, 40, 10, 5],
       '6 months': [600, 400, 300, 250, 200, 150, 120, 80, 60, 40, 10, 5],
-      '1 year': [650, 500, 400, 350, 325, 280, 250, 200, 180, 150, 120, 80]
+      '1 year': [650, 500, 400, 350, 325, 280, 250, 200, 180, 150, 120, 40]
     };
 
     // 2. Definimos tu paleta de colores (se mantiene constante)
@@ -196,12 +197,29 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
           if (precipitacionAcumulada.lat && precipitacionAcumulada.lng) {
             const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado, rango as "1 week" | "1 month" | "3 months" | "6 months " | "1 year ");
 
+            this.colorTexto = '#ffffff';
+
+            if (precipitacionAcumulada.valor_acumulado < 20 && rango === '1 week') {
+               this.colorTexto = '#6b6b6bff' ;
+            } else if (precipitacionAcumulada.valor_acumulado < 40 && rango === '1 month') {
+               this.colorTexto = '#6b6b6bff' ;
+            } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '3 months') {
+               this.colorTexto = '#6b6b6bff' ;
+            } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '6 months') {
+               this.colorTexto = '#6b6b6bff' ;
+            } else if (precipitacionAcumulada.valor_acumulado < 180 && rango === '1 year') {
+               this.colorTexto = '#6b6b6bff' ;
+            }
+              
+
             // Crear un icono HTML personalizado
             const customIcon = L.divIcon({
               className: 'custom-precip-icon',
-              html: `<div class="marker-circle" style="background-color: ${colorIconoPrecipitacion}">
-              <span>${precipitacionAcumulada.valor_acumulado}</span> </div>`,
-              iconSize: [24, 24], // 👈 Más pequeño
+              html: `
+        <div class="marker-circle" style="background-color: ${colorIconoPrecipitacion};">
+          <span style="color: ${this.colorTexto} !important;">${precipitacionAcumulada.valor_acumulado}</span>
+        </div>`,
+              iconSize: [24, 24],
               iconAnchor: [12, 12]
             });
 
