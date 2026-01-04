@@ -139,11 +139,11 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
     return '#bdc3c7'; // Por defecto gris si algo fallara
   }
 
-  getPrecipitationColor(valor: number, rango: '7 days' | '1 month' | '3 months' | '6 months ' | '1 year '): string {
+  getPrecipitationColor(valor: number, rango: '1 week' | '1 month' | '3 months' | '6 months ' | '1 year '): string {
 
     // 1. Definimos los umbrales para cada periodo
     const escalas: Record<string, number[]> = {
-      '7 days': [100, 80, 70, 50, 40, 35, 30, 25, 20, 15, 10, 5],
+      '1 week': [100, 80, 70, 50, 40, 35, 30, 25, 20, 15, 10, 5],
       '1 month': [250, 200, 175, 150, 125, 100, 80, 60, 40, 30, 10, 5],
       '3 months': [500, 300, 250, 200, 150, 125, 100, 80, 60, 40, 10, 5],
       '6 months': [600, 400, 300, 250, 200, 150, 120, 80, 60, 40, 10, 5],
@@ -156,8 +156,8 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
       '#ff00ff', // Magenta
       '#cc33ff', // Morado fuerte
       '#9966ff', // Violeta
-      '#02027eff', // Azul casi negro
-      '#000099', // Azul oscuro
+      '#0000c5ff', // Azul casi negro
+      '#0000ffff', // Azul oscuro
       '#0066ff', // Azul medio
       '#3399ff', // Azul claro
       '#66cccc', // Cian
@@ -194,7 +194,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
         this.jsonPrecipitaciones.forEach((precipitacionAcumulada: any) => {
           if (precipitacionAcumulada.lat && precipitacionAcumulada.lng) {
-            const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado, rango as "7 days" | "1 month" | "3 months" | "6 months " | "1 year ");
+            const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado, rango as "1 week" | "1 month" | "3 months" | "6 months " | "1 year ");
 
             // Crear un icono HTML personalizado
             const customIcon = L.divIcon({
