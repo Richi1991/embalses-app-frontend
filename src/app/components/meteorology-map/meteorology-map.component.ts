@@ -92,14 +92,22 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
             const dto = estacion.precipitacionesDTO;
             const valor24h = dto.precipitacion24h || 0;
+
+            this.colorTexto = '#ffffff';
+
+            if (dto.precipitacion24h < 5) {
+              this.colorTexto = '#6b6b6bff';
+            }
+
             const colorFondo = this.getColorLluvia(valor24h);
 
-            // Crear un icono HTML personalizado
             const customIcon = L.divIcon({
               className: 'custom-precip-icon',
-              html: `<div class="marker-circle" style="background-color: ${colorFondo}">
-            <span>${valor24h}</span> </div>`,
-              iconSize: [24, 24], // 👈 Más pequeño
+              html: `
+              <div class="marker-circle" style="background-color: ${colorFondo};">
+                <span style="color: ${this.colorTexto} !important;">${Math.round(dto.precipitacion24h * 10) / 10}</span>
+              </div>`,
+              iconSize: [24, 24],
               iconAnchor: [12, 12]
             });
 
@@ -129,13 +137,17 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
   private getColorLluvia(valor: number): string {
     if (!valor || valor === 0) return '#bdc3c7'; // Gris
-    if (valor < 5) return '#c9e3f5ff';            // 0.1 a 4.99
-    if (valor < 10) return '#4a96c9ff';           // 5.0 a 9.99
-    if (valor < 20) return '#0045f5ff';           // 10.0 a 19.99
-    if (valor < 40) return '#2f0be1ff';           // 20.0 a 39.99
-    if (valor < 60) return '#e500feff';           // 40.0 a 59.99
-    if (valor < 100) return '#ff0000ff';          // 60.0 a 99.99
-    if (valor >= 100) return '#060105ff';         // 100 en adelante
+    if (valor < 1) return '#ffffcc';            // 0.1 a 4.99
+    if (valor < 2) return '#ccff99';           // 5.0 a 9.99
+    if (valor < 5) return '#99ff99';           // 5.0 a 9.99
+    if (valor < 10) return '#66cccc';           // 10.0 a 19.99
+    if (valor < 15) return '#0066ff';           // 20.0 a 39.99
+    if (valor < 20) return '#0000ffff';           // 40.0 a 59.99
+    if (valor < 40) return '#0000c5ff';           // 40.0 a 59.99
+    if (valor < 50) return '#9966ff';          // 60.0 a 99.99
+    if (valor < 80) return '#cc33ff';         // 100 en adelante
+    if (valor < 100) return '#ff00ff';
+    if (valor >= 100) return '#990033';
 
     return '#bdc3c7'; // Por defecto gris si algo fallara
   }
@@ -195,29 +207,30 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
         this.jsonPrecipitaciones.forEach((precipitacionAcumulada: any) => {
           if (precipitacionAcumulada.lat && precipitacionAcumulada.lng) {
+
             const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado, rango as "1 week" | "1 month" | "3 months" | "6 months " | "1 year ");
 
             this.colorTexto = '#ffffff';
 
             if (precipitacionAcumulada.valor_acumulado < 20 && rango === '1 week') {
-               this.colorTexto = '#6b6b6bff' ;
+              this.colorTexto = '#6b6b6bff';
             } else if (precipitacionAcumulada.valor_acumulado < 40 && rango === '1 month') {
-               this.colorTexto = '#6b6b6bff' ;
+              this.colorTexto = '#6b6b6bff';
             } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '3 months') {
-               this.colorTexto = '#6b6b6bff' ;
+              this.colorTexto = '#6b6b6bff';
             } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '6 months') {
-               this.colorTexto = '#6b6b6bff' ;
+              this.colorTexto = '#6b6b6bff';
             } else if (precipitacionAcumulada.valor_acumulado < 180 && rango === '1 year') {
-               this.colorTexto = '#6b6b6bff' ;
+              this.colorTexto = '#6b6b6bff';
             }
-              
+
 
             // Crear un icono HTML personalizado
             const customIcon = L.divIcon({
               className: 'custom-precip-icon',
               html: `
         <div class="marker-circle" style="background-color: ${colorIconoPrecipitacion};">
-          <span style="color: ${this.colorTexto} !important;">${precipitacionAcumulada.valor_acumulado}</span>
+          <span style="color: ${this.colorTexto} !important;">${Math.round(precipitacionAcumulada.valor_acumulado * 10) /10}</span>
         </div>`,
               iconSize: [24, 24],
               iconAnchor: [12, 12]
