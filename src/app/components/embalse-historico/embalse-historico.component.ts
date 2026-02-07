@@ -80,7 +80,7 @@ export class EmbalseHistoricoComponent implements OnInit {
         case 'ALL': return fecha >= new Date(ahora.setFullYear(ahora.getFullYear() - 5));
         default: return true;
       }
-    }); 
+    });
 
     // Actualizar Header con el último dato disponible
     if (this.datosFiltrados.length > 0) {
@@ -95,15 +95,15 @@ export class EmbalseHistoricoComponent implements OnInit {
       this.nombreEmbalse = ultimo.nombre;
 
       this.variacionVolumenTotal = ultimo.hm3 - primero.hm3;
-      
+
       this.porcentajeTotalHeader = ultimo.porcentaje;
 
       this.variacionPorcentajeTotalHeader = ultimo.porcentaje - primero.porcentaje;
-      
+
       if (primero.volumen !== 0) {
         this.porcentajeVariacion = ((ultimo.porcentaje - primero.porcentaje) / primero.volumen) * 100;
       }
-      
+
       this.tendenciaPositiva = this.variacionVolumenTotal >= 0;
     }
 
@@ -130,7 +130,12 @@ export class EmbalseHistoricoComponent implements OnInit {
     this.chart = new Chart(ctx!, {
       type: 'line',
       data: {
-        labels: this.datosFiltrados.map(d => new Date(d.fechaRegistro).toLocaleDateString()),
+        labels: this.datosFiltrados.map(d => {
+          const f = new Date(d.fechaRegistro);
+          return this.filter === '1D'
+            ? f.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : f.toLocaleDateString();
+        }),
         datasets: [{
           label: 'Volumen (hm3)',
           data: this.datosFiltrados.map(d => d.hm3),
@@ -170,7 +175,8 @@ export class EmbalseHistoricoComponent implements OnInit {
               maxRotation: 0,
               autoSkip: true,
               maxTicksLimit: 12 // Menos etiquetas para un look más limpio
-            }
+            },
+            bounds: 'ticks'
           },
           y: {
             type: 'linear',
