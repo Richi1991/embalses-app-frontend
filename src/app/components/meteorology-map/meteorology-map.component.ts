@@ -90,12 +90,13 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
           if (estacion.latitud && estacion.longitud) {
 
-            const dto = estacion.precipitacionesDTO;
-            const valor24h = dto.precipitacion24h || 0;
+            const valor24h = estacion.precipitacion24h || 0;
+            const lat = parseFloat(estacion.latitud);
+            const lng = parseFloat(estacion.longitud);
 
             this.colorTexto = '#ffffff';
 
-            if (dto.precipitacion24h < 5) {
+            if (valor24h < 5) {
               this.colorTexto = '#6b6b6bff';
             }
 
@@ -104,14 +105,16 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
             const customIcon = L.divIcon({
               className: 'custom-precip-icon',
               html: `
-              <div class="marker-circle" style="background-color: ${colorFondo};">
-                <span style="color: ${this.colorTexto} !important;">${Math.round(dto.precipitacion24h * 10) / 10}</span>
-              </div>`,
+                <div class="marker-circle" style="background-color: ${colorFondo};">
+                  <span style="color: ${this.colorTexto} !important;">
+                    ${Math.round(valor24h * 10) / 10}
+                  </span>
+                </div>`,
               iconSize: [24, 24],
               iconAnchor: [12, 12]
             });
 
-            const marcador = L.marker([estacion.latitud, estacion.longitud], {
+            const marcador = L.marker([lat, lng], {
               icon: customIcon
             });
 
@@ -119,11 +122,15 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
             <div style="min-width: 150px;">
               <strong style="color: #2c3e50;">${estacion.nombre}</strong><br>
               <table style="width: 100%; margin-top: 5px; border-collapse: collapse;">
-                <tr><td><b>1h:</b></td><td>${dto.precipitacion1h} mm</td></tr>
-                <tr><td><b>3h:</b></td><td>${dto.precipitacion3h} mm</td></tr>
-                <tr><td><b>6h:</b></td><td>${dto.precipitacion6h} mm</td></tr>
-                <tr><td><b>12h:</b></td><td>${dto.precipitacion12h} mm</td></tr>
-                <tr style="border-top: 1px solid #ddd;"><td><b>24h:</b></td><td><b>${dto.precipitacion24h} mm</b></td></tr>
+                <tr style="border-top: 1px solid #ddd;">
+                  <td><b>Acumulado 24h:</b></td>
+                  <td><b>${valor24h} mm</b></td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="font-size: 0.8em; color: gray;">
+                    Act: ${estacion.fechaActualizacion ? new Date(estacion.fechaActualizacion).toLocaleString() : '---'}
+                  </td>
+                </tr>
               </table>
             </div>
           `);
@@ -230,7 +237,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
               className: 'custom-precip-icon',
               html: `
         <div class="marker-circle" style="background-color: ${colorIconoPrecipitacion};">
-          <span style="color: ${this.colorTexto} !important;">${Math.round(precipitacionAcumulada.valor_acumulado * 10) /10}</span>
+          <span style="color: ${this.colorTexto} !important;">${Math.round(precipitacionAcumulada.valor_acumulado * 10) / 10}</span>
         </div>`,
               iconSize: [24, 24],
               iconAnchor: [12, 12]
