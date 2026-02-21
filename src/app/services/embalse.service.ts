@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { EstacionesService } from './estaciones.service';
 
 export interface Embalse {
   idEmbalse: number;
@@ -14,6 +13,8 @@ export interface Embalse {
   variacion: number;
   tendencia: string;
   fechaRegistro: Date;
+  latitud: number;
+  longitud: number;
 }
 
 export interface HistoricoCuenca {
@@ -35,6 +36,7 @@ export class EmbalseService {
   private apiUrlHistoricoCuenca = 'https://embalses-api.onrender.com/api/embalses/historico-cuenca';
   private apiUrlHistoricoCuencaDiario = 'https://embalses-api.onrender.com/api/embalses/historico-cuenca-diario';
   private apiUrlHistoricoEmbalse = 'https://embalses-api.onrender.com/api/embalses/obtener_historico_embalse';
+  private apiUrlIconoEmbalse = 'https://embalses-api.onrender.com/api/embalses/get_embalses_last_value_and_position';
 
   // Variables de caché
   private cacheHistoricoLargo: HistoricoCuenca[] | null = null;
@@ -65,6 +67,11 @@ export class EmbalseService {
 
   getHistoricoEmbalse(idEmbalse: number): Observable<Embalse[]> {
     const url = `${this.apiUrlHistoricoEmbalse}${idEmbalse}`;
+    return this.http.get<Embalse[]>(url);
+  }
+
+   getIconoEmbalse(): Observable<Embalse[]> {
+    const url = `${this.apiUrlIconoEmbalse}`;
     return this.http.get<Embalse[]>(url);
   }
 

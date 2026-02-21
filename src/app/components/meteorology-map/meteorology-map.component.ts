@@ -1,25 +1,33 @@
 import { Component, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { EstacionesService, Estacion, PrecipitacionAcumulada } from '../../services/estaciones.service';
+import { EstacionesService} from '../../services/estaciones.service';
+import { EmbalseService} from '../../services/embalse.service';
+import { Subscription } from 'rxjs';
+import { ReservoirData } from './embalse-marker/embalse-icon.utils';
+import { EmbalseMarkerComponent } from './embalse-marker/embalse-marker.component';
+
 import * as L from 'leaflet';
 
 @Component({
   selector: 'app-meteorology-map',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, EmbalseMarkerComponent],
   templateUrl: './meteorology-map.component.html',
   styleUrls: ['./meteorology-map.component.scss']
 })
 export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
-  private map!: L.Map;
+  public map!: L.Map;
   private jsonEstaciones: any[] = [];
   private jsonPrecipitaciones: any[] = [];
   private estacionesService: EstacionesService = inject(EstacionesService);
+  private embalseService: EmbalseService = inject(EmbalseService);
   private ubicacionEstaciones: L.LayerGroup = L.layerGroup();
   private colorTexto: String;
+  public reservoirs: ReservoirData[] = [];
+  private sub!: Subscription;
 
   public rango: string = 'mes';
 
@@ -49,6 +57,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
     this.loadCuenca();
 
     this.cargarDatosEstaciones();
+    this.cargarDatosEmbalses();
 
     this.map.on('zoomend moveend', () => {
       this.map.invalidateSize();
@@ -79,6 +88,19 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
       .catch(err => console.warn('Archivo JSON no encontrado aún, cargando mapa base.'));
   }
 
+  private cargarDatosEmbalses(): void {
+    this.sub = this.embalseService.getIconoEmbalse().subscribe(data => {
+      this.reservoirs = data.map(emb => ({
+        id: emb.idEmbalse,
+        name: emb.nombre,
+        lat: emb.latitud,
+        lng: emb.longitud,
+        percentageFull: emb.porcentaje,
+        currentVolume : emb.hm3,
+        maxVolume: emb.capacidadMaximaEmbalse,
+      } as ReservoirData));
+    });
+  }
 
   cargarDatosEstaciones() {
     this.estacionesService.getEstacionesAndPrecipitacionesUltimas24h().subscribe({
