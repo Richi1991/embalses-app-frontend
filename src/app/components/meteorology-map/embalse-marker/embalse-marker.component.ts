@@ -20,6 +20,7 @@ export class EmbalseMarkerComponent implements OnInit {
   @Input() iconSize: number = 44;
 
   public embalseLayerGroup: L.LayerGroup | null = null;
+  private zoomListener: any;
 
   constructor() { }
 
@@ -27,6 +28,9 @@ export class EmbalseMarkerComponent implements OnInit {
     if (this.map) {
       this.embalseLayerGroup = L.layerGroup().addTo(this.map);
       this.renderMarkers();
+
+      this.zoomListener = () => this.renderMarkers();
+      this.map.on('zoomend', this.zoomListener);
     }
   }
 
@@ -37,17 +41,33 @@ export class EmbalseMarkerComponent implements OnInit {
     }
   }
 
+  public getIconSize(): number {
+    const zoom = this.map.getZoom();
+    if (zoom <= 6) return 8;
+    if (zoom <= 7) return 12;
+    if (zoom <= 8) return 15;
+    if (zoom <= 9) return 22;
+    if (zoom <= 10) return 35;
+    if (zoom <= 11) return 48;
+    return 55;
+  }
+
   ngOnDestroy(): void {
+    if (this.map && this.zoomListener) {
+      this.map.off('zoomend', this.zoomListener);
+    }
     this.embalseLayerGroup?.clearLayers();
     this.embalseLayerGroup?.remove();
   }
 
-  private renderMarkers(): void {
+  public renderMarkers(): void {
     if (!this.embalseLayerGroup) return;
     this.embalseLayerGroup.clearLayers();
 
+    const size = this.getIconSize();
+
     for (const reservoir of this.reservoirs) {
-      const icon   = createReservoirIcon(reservoir, this.iconSize);
+      const icon   = createReservoirIcon(reservoir, size);
       const marker = L.marker([reservoir.lat, reservoir.lng], { icon });
 
       marker.bindPopup(buildReservoirPopup(reservoir), {
@@ -56,7 +76,7 @@ export class EmbalseMarkerComponent implements OnInit {
       });
 
       // Optional: open popup on hover too
-      marker.on('mouseover', () => marker.openPopup());
+      marker.on('onclick', () => marker.openPopup());
 
       marker.addTo(this.embalseLayerGroup);
     }

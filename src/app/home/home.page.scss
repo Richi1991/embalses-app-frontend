@@ -186,14 +186,22 @@ app-meteorology-map {
     background: transparent;
     border: none;
     color: var(--text-gray);
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
     font-size: 0.8rem;
     cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+
+    &:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
 
     &.active {
-      background: #2962ff;
-      color: #fff;
+      background: rgba(41, 98, 255, 0.2);  // ← fondo azul semitransparente
+      color: #6c9fff;                        // ← texto azul claro
+      border: 1px solid rgba(41, 98, 255, 0.4); // ← borde sutil
     }
   }
 }

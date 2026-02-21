@@ -7,7 +7,7 @@
         <span>Precipitaciones y Estado Embalses</span>
         <div class="time-filters">
           <button [class.active]="mapaMeteorologico.rango === '1 day'"
-                  (click)="mapaMeteorologico.cargarDatosEstaciones()">1d</button>
+        (click)="mapaMeteorologico.rango = '1 day'; mapaMeteorologico.cargarDatosEstaciones()">1d</button>
           <button [class.active]="mapaMeteorologico.rango === '1 week'"
                   (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('1 week')">7d</button>
           <button [class.active]="mapaMeteorologico.rango === '1 month'"

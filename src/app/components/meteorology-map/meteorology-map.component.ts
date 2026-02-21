@@ -24,33 +24,21 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   private jsonPrecipitaciones: any[] = [];
   private estacionesService: EstacionesService = inject(EstacionesService);
   private embalseService: EmbalseService = inject(EmbalseService);
-  private embalseLayerGroup: L.LayerGroup = L.layerGroup();
   private ubicacionEstaciones: L.LayerGroup = L.layerGroup();
   private colorTexto: String;
   public reservoirs: ReservoirData[] = [];
   private sub!: Subscription;
   public showEmbalses: boolean = true;
   public showEstaciones: boolean = true;
+  private viewMode: 'actual' | 'historico' = 'actual';
+  private currentRango: string = '1 day';
+
   @ViewChild('embalseMarker') embalseMarker!: EmbalseMarkerComponent;
 
   public rango: string = 'mes';
 
   ngAfterViewInit() {
     this.initMap();
-  }
-
-  toggleLayer(layer: 'embalses' | 'estaciones') {
-    if (layer === 'embalses') {
-      this.showEmbalses = !this.showEmbalses;
-      this.showEmbalses
-        ? this.embalseMarker.embalseLayerGroup?.addTo(this.map)
-        : this.embalseMarker.embalseLayerGroup?.remove();
-    } else {
-      this.showEstaciones = !this.showEstaciones;
-      this.showEstaciones
-        ? this.ubicacionEstaciones.addTo(this.map)
-        : this.ubicacionEstaciones.remove();
-    }
   }
 
   private initMap(): void {
@@ -73,18 +61,58 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
     // Coordenadas del centro de la Cuenca del Segura
     this.loadCuenca();
-
     this.cargarDatosEstaciones();
     this.cargarDatosEmbalses();
 
     this.map.on('zoomend moveend', () => {
       this.map.invalidateSize();
+      if (this.showEstaciones) {
+        this.refrescarMarcadores();
+      }
+      if (this.showEmbalses) {
+        this.embalseMarker?.renderMarkers();
+      }
     });
 
     // Forzar a que Leaflet recalcule el tamaño (evita fallos de renderizado)
     setTimeout(() => {
       this.map.invalidateSize();
     }, 200);
+  }
+
+
+  private refrescarMarcadores() {
+    if (!this.showEstaciones) return;
+    if (this.viewMode === 'actual') {
+      this.dibujarMarcadoresEstaciones(this.jsonEstaciones);
+    } else {
+      this.dibujarMarcadoresHistoricos(this.jsonPrecipitaciones, this.currentRango);
+    }
+  }
+
+  toggleLayer(layer: 'embalses' | 'estaciones') {
+    if (layer === 'embalses') {
+      this.showEmbalses = !this.showEmbalses;
+      this.showEmbalses
+        ? this.embalseMarker.embalseLayerGroup?.addTo(this.map)
+        : this.embalseMarker.embalseLayerGroup?.remove();
+    } else {
+      this.showEstaciones = !this.showEstaciones;
+      this.showEstaciones
+        ? this.ubicacionEstaciones.addTo(this.map)
+        : this.ubicacionEstaciones.remove();
+    }
+  }
+
+  private getMarkerSize(): number {
+    const zoom = this.map.getZoom();
+    if (zoom <= 6) return 8;
+    if (zoom <= 7) return 12;
+    if (zoom <= 8) return 15;
+    if (zoom <= 9) return 22;
+    if (zoom <= 10) return 35;
+    if (zoom <= 11) return 48;
+    return 55; // Zoom muy cercano
   }
 
   private loadCuenca() {
@@ -121,44 +149,60 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   }
 
   cargarDatosEstaciones() {
+    this.viewMode = 'actual';
     this.estacionesService.getEstacionesAndPrecipitacionesUltimas24h().subscribe({
       next: (estaciones) => {
         this.jsonEstaciones = estaciones;
-        this.ubicacionEstaciones.clearLayers();
+        this.dibujarMarcadoresEstaciones(estaciones);
+      }
+    });
+  }
 
-        this.jsonEstaciones.forEach((estacion: any) => {
+  private dibujarMarcadoresEstaciones(data: any[]) {
+    this.ubicacionEstaciones.clearLayers();
+    const size = this.getMarkerSize();
+    const fontSize = size / 2.5;
 
-          if (estacion.latitud && estacion.longitud) {
+    data.forEach((estacion: any) => {
+      if (estacion.latitud && estacion.longitud) {
+        const valor24h = estacion.precipitacion24h || 0;
+        const lat = parseFloat(estacion.latitud);
+        const lng = parseFloat(estacion.longitud);
 
-            const valor24h = estacion.precipitacion24h || 0;
-            const lat = parseFloat(estacion.latitud);
-            const lng = parseFloat(estacion.longitud);
+        this.colorTexto = '#ffffff';
 
-            this.colorTexto = '#ffffff';
+        if (valor24h < 5) {
+          this.colorTexto = '#6b6b6bff';
+        }
 
-            if (valor24h < 5) {
-              this.colorTexto = '#6b6b6bff';
-            }
+        const colorFondo = this.getPrecipitationColor(valor24h, '1 day');
+        const customIcon = L.divIcon({
+          className: 'custom-precip-icon',
+          html: `<div style="
+            background-color: ${colorFondo};
+            width: ${size}px;
+            height: ${size}px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${Math.max(8, size * 0.38)}px;
+            font-weight: 700;
+            color: ${this.colorTexto};
+            font-family: 'DM Sans', system-ui, sans-serif;
+            border: 1.5px solid rgba(0,0,0,0.25);
+            box-sizing: border-box;
+            white-space: nowrap;
+          ">${Math.round(valor24h * 10) / 10}</div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
 
-            const colorFondo = this.getColorLluvia(valor24h);
+        const marcador = L.marker([lat, lng], {
+          icon: customIcon
+        });
 
-            const customIcon = L.divIcon({
-              className: 'custom-precip-icon',
-              html: `
-                <div class="marker-circle" style="background-color: ${colorFondo};">
-                  <span style="color: ${this.colorTexto} !important;">
-                    ${Math.round(valor24h * 10) / 10}
-                  </span>
-                </div>`,
-              iconSize: [24, 24],
-              iconAnchor: [12, 12]
-            });
-
-            const marcador = L.marker([lat, lng], {
-              icon: customIcon
-            });
-
-            marcador.bindPopup(`
+        marcador.bindPopup(`
             <div style="min-width: 150px;">
               <strong style="color: #2c3e50;">${estacion.nombre}</strong><br>
               <table style="width: 100%; margin-top: 5px; border-collapse: collapse;">
@@ -174,36 +218,18 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
               </table>
             </div>
           `);
-            this.ubicacionEstaciones.addLayer(marcador);
-          }
-        });
-        this.ubicacionEstaciones.addTo(this.map);
+        this.ubicacionEstaciones.addLayer(marcador);
       }
     });
+    this.ubicacionEstaciones.addTo(this.map);
   }
 
-  private getColorLluvia(valor: number): string {
-    if (!valor || valor === 0) return '#ffffff1b'; // Gris
-    if (valor < 1) return '#ffffcc';            // 0.1 a 4.99
-    if (valor < 2) return '#ccff99';           // 5.0 a 9.99
-    if (valor < 5) return '#99ff99';           // 5.0 a 9.99
-    if (valor < 10) return '#66cccc';           // 10.0 a 19.99
-    if (valor < 15) return '#0066ff';           // 20.0 a 39.99
-    if (valor < 20) return '#0000ffff';           // 40.0 a 59.99
-    if (valor < 40) return '#0000c5ff';           // 40.0 a 59.99
-    if (valor < 50) return '#9966ff';          // 60.0 a 99.99
-    if (valor < 80) return '#cc33ff';         // 100 en adelante
-    if (valor < 100) return '#ff00ff';
-    if (valor >= 100) return '#990033';
-
-    return '#bdc3c7'; // Por defecto gris si algo fallara
-  }
-
-  getPrecipitationColor(valor: number, rango: '1 week' | '1 month' | '3 months' | '6 months ' | '1 year '): string {
+  getPrecipitationColor(valor: number, rango: '1 day' | '1 week' | '1 month' | '3 months' | '6 months ' | '1 year '): string {
 
     // 1. Definimos los umbrales para cada periodo
     const escalas: Record<string, number[]> = {
-      '1 week': [100, 80, 70, 50, 40, 35, 30, 25, 20, 15, 10, 1],
+      '1 day': [150, 100, 80, 50, 40, 30, 20, 15, 10, 5, 2, 1],
+      '1 week': [200, 120, 90, 60, 50, 35, 30, 25, 20, 15, 10, 1],
       '1 month': [250, 200, 175, 150, 125, 100, 80, 60, 40, 30, 10, 1],
       '3 months': [500, 300, 250, 200, 150, 125, 100, 80, 60, 40, 10, 5],
       '6 months': [600, 400, 300, 250, 200, 150, 120, 80, 60, 40, 10, 5],
@@ -221,9 +247,9 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
       '#0066ff', // Azul medio
       '#3399ff', // Azul claro
       '#66cccc', // Cian
-      '#99ff99', // Verde claro
-      '#ccff99', // Verde amarillento
-      '#ffffcc'  // Amarillo muy pálido (Mínimo)
+      '#72fe72', // Verde claro
+      '#c6fa7d', // Verde amarillento
+      '#ffff9c'  // Amarillo muy pálido (Mínimo)
     ];
 
     // 3. Obtenemos los umbrales según el rango elegido
@@ -236,7 +262,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    return 'transparent'; // Si no llega al mínimo
+    return '#ffffd8'; // Si no llega al mínimo
   }
 
   ngOnDestroy() {
@@ -246,48 +272,69 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   }
 
   mostrarHistoricoPrecipitaciones(rango: string) {
-
+    this.rango = rango;
+    this.viewMode = 'historico';
+    this.currentRango = rango;
     this.estacionesService.getHistoricoPrecipitaciones(rango).subscribe({
       next: (precipitaciones) => {
         this.jsonPrecipitaciones = precipitaciones;
-        this.ubicacionEstaciones.clearLayers();
+        this.dibujarMarcadoresHistoricos(precipitaciones, rango);
+      }
+    });
+  }
 
-        this.jsonPrecipitaciones.forEach((precipitacionAcumulada: any) => {
-          if (precipitacionAcumulada.lat && precipitacionAcumulada.lng) {
+  private dibujarMarcadoresHistoricos(data: any[], rango: string) {
+    this.ubicacionEstaciones.clearLayers();
+    const size = this.getMarkerSize();
+    const fontSize = size / 2.5;
 
-            const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado, rango as "1 week" | "1 month" | "3 months" | "6 months " | "1 year ");
+    data.forEach((precipitacionAcumulada: any) => {
+      if (precipitacionAcumulada.lat && precipitacionAcumulada.lng) {
 
-            this.colorTexto = '#ffffff';
+        const colorIconoPrecipitacion = this.getPrecipitationColor(precipitacionAcumulada.valor_acumulado, rango as "1 week" | "1 month" | "3 months" | "6 months " | "1 year ");
 
-            if (precipitacionAcumulada.valor_acumulado < 20 && rango === '1 week') {
-              this.colorTexto = '#6b6b6bff';
-            } else if (precipitacionAcumulada.valor_acumulado < 40 && rango === '1 month') {
-              this.colorTexto = '#6b6b6bff';
-            } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '3 months') {
-              this.colorTexto = '#6b6b6bff';
-            } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '6 months') {
-              this.colorTexto = '#6b6b6bff';
-            } else if (precipitacionAcumulada.valor_acumulado < 180 && rango === '1 year') {
-              this.colorTexto = '#6b6b6bff';
-            }
+        this.colorTexto = '#ffffff';
 
+        if (precipitacionAcumulada.valor_acumulado < 20 && rango === '1 week') {
+          this.colorTexto = '#6b6b6bff';
+        } else if (precipitacionAcumulada.valor_acumulado < 40 && rango === '1 month') {
+          this.colorTexto = '#6b6b6bff';
+        } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '3 months') {
+          this.colorTexto = '#6b6b6bff';
+        } else if (precipitacionAcumulada.valor_acumulado < 60 && rango === '6 months') {
+          this.colorTexto = '#6b6b6bff';
+        } else if (precipitacionAcumulada.valor_acumulado < 180 && rango === '1 year') {
+          this.colorTexto = '#6b6b6bff';
+        }
 
-            // Crear un icono HTML personalizado
-            const customIcon = L.divIcon({
-              className: 'custom-precip-icon',
-              html: `
-        <div class="marker-circle" style="background-color: ${colorIconoPrecipitacion};">
-          <span style="color: ${this.colorTexto} !important;">${Math.round(precipitacionAcumulada.valor_acumulado * 10) / 10}</span>
-        </div>`,
-              iconSize: [24, 24],
-              iconAnchor: [12, 12]
-            });
+        // Crear un icono HTML personalizado
+        const customIcon = L.divIcon({
+          className: 'custom-precip-icon',
+          html: `<div style="
+            background-color: ${colorIconoPrecipitacion};
+            width: ${size}px;
+            height: ${size}px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${Math.max(8, size * 0.38)}px;
+            font-weight: 700;
+            color: ${this.colorTexto};
+            font-family: 'DM Sans', system-ui, sans-serif;
+            border: 1.5px solid rgba(0,0,0,0.25);
+            box-sizing: border-box;
+            white-space: nowrap;
+          ">${Math.round(precipitacionAcumulada.valor_acumulado * 10) / 10}</div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
 
-            const marcador = L.marker([precipitacionAcumulada.lat, precipitacionAcumulada.lng], {
-              icon: customIcon
-            });
+        const marcador = L.marker([precipitacionAcumulada.lat, precipitacionAcumulada.lng], {
+          icon: customIcon
+        });
 
-            marcador.bindPopup(`
+        marcador.bindPopup(`
             <div style="min-width: 150px;">
               <strong style="color: #2c3e50;">${precipitacionAcumulada.nombre}</strong><br>
               <table style="width: 100%; margin-top: 5px; border-collapse: collapse;">
@@ -295,12 +342,9 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
               </table>
             </div>
           `);
-            this.ubicacionEstaciones.addLayer(marcador);
-          }
-        });
-        this.ubicacionEstaciones.addTo(this.map);
+        this.ubicacionEstaciones.addLayer(marcador);
       }
     });
-
+    this.ubicacionEstaciones.addTo(this.map);
   }
 }
