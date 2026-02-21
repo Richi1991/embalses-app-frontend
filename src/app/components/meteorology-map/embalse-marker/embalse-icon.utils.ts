@@ -101,8 +101,10 @@ export function buildCylinderSVG(pct: number, size: number): string {
         fill="white" opacity="0.08" rx="1.5" clip-path="url(#cc${uid})"/>
 
  <!-- borde cristal -->
-  <rect x="${cx - rx}" y="${top}" width="${rx * 2}" height="${bodyH}"
-        fill="none" stroke="${p.rim}" stroke-width="1.8" rx="2"/>
+  <rect x="${cx - rx - 1}" y="${top - 1}" width="${rx * 2 + 2}" height="${bodyH + 2}"
+      fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="3" rx="3"/>
+<rect x="${cx - rx}" y="${top}" width="${rx * 2}" height="${bodyH}"
+      fill="none" stroke="${p.rim}" stroke-width="1.8" rx="2"/>
 
   <!-- tapa inferior -->
   <ellipse cx="${cx}" cy="${bot}" rx="${rx}" ry="${ry}"

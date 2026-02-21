@@ -55,14 +55,14 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
   private initMap(): void {
 
-    const seguraCenter: L.LatLngExpression = [38, -1.5];
+    const seguraCenter: L.LatLngExpression = [37.9, -1.85];
 
     // Inicializar el objeto mapa
     this.map = L.map('mapId', {
       zoomSnap: 1,
       zoomDelta: 1,
       preferCanvas: true
-    }).setView(seguraCenter, 9);
+    }).setView(seguraCenter, 8);
 
     // Añadir los "tiles" (las imágenes del mapa)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -101,7 +101,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
         }).addTo(this.map);
 
         // Ajustar la cámara automáticamente a la cuenca
-        this.map.fitBounds(cuencaLayer.getBounds(), { padding: [30, 30], maxZoom: 8 });
+        this.map.fitBounds(cuencaLayer.getBounds(), { padding: [40, 40], maxZoom: 9 });
       })
       .catch(err => console.warn('Archivo JSON no encontrado aún, cargando mapa base.'));
   }

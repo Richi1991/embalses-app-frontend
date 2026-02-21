@@ -1,82 +1,17 @@
-// VARIABLES (Ahorra espacio y facilita cambios)
-
+// ─── VARIABLES ───────────────────────────────────────────────
 $rev-gradient: linear-gradient(90deg, #7f7fd5, #86a8e7, #91eae4);
-$rev-gray: #8e8e93;
-$rev-active: #ffffff;
-
-.map-card-top {
-  margin-bottom: 10px;
-  padding: 16px;
-  background: var(--bg-card); // 👈 Usa la variable global para que el color sea idéntico
-  border-radius: 8px; // 👈 Usa el mismo radio que .fintech-card
-  border: var(--border); // 👈 Usa la misma variable de borde
-
-  .map-wrapper {
-    width: 100%;
-    height: 450px; // Altura controlada para que no rompa el layout
-    position: relative;
-    margin-top: 15px;
-    border-radius: 4px; // Un radio menor para el mapa interno
-    overflow: hidden;
-    display: block;
-    border: none; // Sombra interna para profundidad
-  }
-
-  // EL TÍTULO CON ESTILO REVOLUT
-  span {
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    // Aplicación del degradado
-    background: $rev-gradient;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .leaflet-container {
-    background: #000;
-    /* o el color de tu mapa */
-  }
-
-  .leaflet-tile {
-    border: none !important;
-    outline: none !important;
-    margin: -1px !important;
-    /* 🔥 CLAVE */
-  }
-}
-
-// Asegúrate de que el componente ocupe todo el wrapper
-app-meteorology-map {
-  display: block;
-  width: 100%;
-  height: 100%;
-  contain: layout; // Optimiza el rendimiento de Leaflet dentro de Ionic
-}
-
-.main-map-wrapper {
-  width: 100%;
-  height: 70vh;
-  /* Protagonismo claro: 70% de la altura visible */
-  position: relative;
-  margin-bottom: 20px;
-  border-radius: 15px;
-  overflow: hidden;
-  /* Para que el mapa respete el redondeo de las esquinas */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
 
 :host {
-  --bg-dark: #0b0e11;
-  --bg-card: #1e222d;
-  --text-gray: #848e9c;
-  --accent-blue: #0e66ff;
+  --bg-dark:      #0b0e11;
+  --bg-card:      #1e222d;
+  --text-gray:    #848e9c;
+  --accent-blue:  #0e66ff;
   --accent-green: #00ff84;
-  --accent-red: #ff4566;
-  --border: 1px solid rgba(255, 255, 255, 0.1);
+  --accent-red:   #ff4566;
+  --border:       1px solid rgba(255, 255, 255, 0.1);
 }
 
+// ─── LAYOUT PRINCIPAL ────────────────────────────────────────
 .fintech-container {
   padding: 16px;
   display: flex;
@@ -84,25 +19,48 @@ app-meteorology-map {
   gap: 20px;
 }
 
+// ─── TARJETA MAPA ────────────────────────────────────────────
 .map-card-top {
-  margin-bottom: 10px; // Espacio con la gráfica de abajo
   padding: 16px;
   background: #15191c;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 
+  span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: $rev-gradient;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   .map-wrapper {
     width: 100%;
-    height: 450px;
+    height: 90vh;        // ← mapa ocupa casi toda la pantalla
     position: relative;
     margin-top: 15px;
     border-radius: 12px;
     overflow: hidden;
-    display: block; // Asegura que no se comporte como inline
+  }
+
+  .leaflet-container { background: #000; }
+  .leaflet-tile {
+    border: none !important;
+    outline: none !important;
+    margin: -1px !important;
   }
 }
 
-// ESTILOS COMUNES DE TARJETAS (Optimizado)
+app-meteorology-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  contain: layout;
+}
+
+// ─── TARJETAS COMUNES ────────────────────────────────────────
 .chart-main-card,
 .fintech-card {
   background: var(--bg-card);
@@ -112,7 +70,53 @@ app-meteorology-map {
   box-sizing: border-box;
 }
 
-// ICONO MODERNO CSS (Reemplaza al ion-icon water-outline)
+// ─── CABECERAS ───────────────────────────────────────────────
+.chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: $rev-gradient;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+
+  &.subidas      { color: var(--accent-green); }
+  &.bajadas      { color: var(--accent-red); }
+  &.total_embalses {
+    color: var(--accent-blue);
+    span {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: $rev-gradient;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+}
+
+// ─── ICONO EMBALSE CSS ───────────────────────────────────────
 .modern-reservoir {
   width: 20px;
   height: 24px;
@@ -142,89 +146,25 @@ app-meteorology-map {
 }
 
 @keyframes waveMove {
-  to {
-    transform: translateX(-50%);
-  }
+  to { transform: translateX(-50%); }
 }
 
-// CABECERAS
-.chart-header {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  span {
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    // Aplicación del degradado
-    background: $rev-gradient;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  @media (min-width: 480px) {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: bold;
-  font-size: 1.1rem;
-  margin-bottom: 15px;
-
-  &.subidas {
-    color: var(--accent-green);
-  }
-
-  &.bajadas {
-    color: var(--accent-red);
-  }
-
-  &.total_embalses {
-    color: var(--accent-blue);
-    span {
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    // Aplicación del degradado
-    background: $rev-gradient;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  }
-}
-
+// ─── VALORES PRINCIPALES ─────────────────────────────────────
 .main-value {
   font-size: 1.8rem;
   font-weight: bold;
   color: #fff;
 
-  span {
-    font-size: 0.9rem;
-    color: var(--text-gray);
-  }
+  span  { font-size: 0.9rem; color: var(--text-gray); }
 }
 
-// BADGES Y VARIACIONES
+// ─── BADGES Y VARIACIONES ────────────────────────────────────
 .variation,
 .badge {
   font-weight: bold;
-}
 
-.variation.positive,
-.badge.positive {
-  color: var(--accent-green);
-}
-
-.variation.negative,
-.badge.negative {
-  color: var(--accent-red);
+  &.positive { color: var(--accent-green); }
+  &.negative { color: var(--accent-red); }
 }
 
 .badge {
@@ -233,16 +173,11 @@ app-meteorology-map {
   border-radius: 4px;
   margin-top: 4px;
 
-  &.positive {
-    background: rgba(0, 255, 132, 0.15);
-  }
-
-  &.negative {
-    background: rgba(255, 69, 102, 0.15);
-  }
+  &.positive { background: rgba(0, 255, 132, 0.15); }
+  &.negative { background: rgba(255, 69, 102, 0.15); }
 }
 
-// BOTONES FILTRO
+// ─── BOTONES FILTRO ──────────────────────────────────────────
 .time-filters {
   display: flex;
   gap: 4px;
@@ -254,6 +189,7 @@ app-meteorology-map {
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.8rem;
+    cursor: pointer;
 
     &.active {
       background: #2962ff;
@@ -262,7 +198,7 @@ app-meteorology-map {
   }
 }
 
-// LISTAS Y TABLAS
+// ─── LISTAS ──────────────────────────────────────────────────
 .header-row,
 .fintech-row {
   display: flex;
@@ -281,20 +217,9 @@ app-meteorology-map {
     font-weight: bold;
   }
 
-  .label-nombre {
-    flex: 2;
-    padding-left: 25px;
-  }
-
-  .label-porcentaje {
-    flex: 1;
-    text-align: center;
-  }
-
-  .label-stats {
-    flex: 1.5;
-    text-align: right;
-  }
+  .label-nombre    { flex: 2; padding-left: 25px; }
+  .label-porcentaje { flex: 1; text-align: center; }
+  .label-stats     { flex: 1.5; text-align: right; }
 }
 
 .fintech-row {
@@ -307,28 +232,18 @@ app-meteorology-map {
     align-items: center;
   }
 
+  .rank   { color: var(--text-gray); width: 20px; font-size: 0.8rem; }
+
   .nombre {
     color: #fff;
     font-weight: 600;
     font-size: 0.85rem;
     cursor: pointer;
 
-    &:hover {
-      text-decoration: underline;
-      color: #2962ff;
-    }
+    &:hover { text-decoration: underline; color: #2962ff; }
   }
 
-  .rank {
-    color: var(--text-gray);
-    width: 20px;
-    font-size: 0.8rem;
-  }
-
-  .center-pill {
-    flex: 1;
-    text-align: center;
-  }
+  .center-pill { flex: 1; text-align: center; }
 
   .porcentaje-badge {
     background: rgba(255, 255, 255, 0.08);
@@ -355,30 +270,19 @@ app-meteorology-map {
   }
 }
 
-// GRÁFICO
+// ─── GRÁFICO ─────────────────────────────────────────────────
 .chart-body {
   width: 100%;
   height: 250px;
   margin-top: 15px;
   position: relative;
 
-  @media (min-width: 768px) {
-    height: 350px;
-  }
+  @media (min-width: 768px) { height: 350px; }
 
-  canvas {
-    width: 100% !important;
-    height: 100% !important;
-  }
+  canvas { width: 100% !important; height: 100% !important; }
 }
 
-// UTILIDADES
-@media (max-width: 600px) {
-  .hide-mobile {
-    display: none !important;
-  }
-}
-
+// ─── GRID CARDS ──────────────────────────────────────────────
 .cards-wrapper {
   display: flex;
   flex-direction: column;
@@ -386,9 +290,11 @@ app-meteorology-map {
 
   @media (min-width: 768px) {
     flex-direction: row;
-
-    &>div {
-      flex: 1;
-    }
+    & > div { flex: 1; }
   }
+}
+
+// ─── UTILIDADES ──────────────────────────────────────────────
+@media (max-width: 600px) {
+  .hide-mobile { display: none !important; }
 }
