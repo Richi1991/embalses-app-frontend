@@ -106,13 +106,13 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
 
   private getMarkerSize(): number {
     const zoom = this.map.getZoom();
-    if (zoom <= 6) return 8;
-    if (zoom <= 7) return 12;
+    if (zoom <= 6) return 4;
+    if (zoom <= 7) return 8;
     if (zoom <= 8) return 15;
-    if (zoom <= 9) return 22;
-    if (zoom <= 10) return 35;
-    if (zoom <= 11) return 48;
-    return 55; // Zoom muy cercano
+    if (zoom <= 9) return 21;
+    if (zoom <= 10) return 25;
+    if (zoom <= 11) return 35;
+    return 40; // Zoom muy cercano
   }
 
   private loadCuenca() {
