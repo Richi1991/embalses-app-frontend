@@ -19,32 +19,32 @@ export class EmbalseMarkerComponent implements OnInit {
   @Input() reservoirs: ReservoirData[] = [];
   @Input() iconSize: number = 44;
 
-  private layerGroup: L.LayerGroup | null = null;
+  public embalseLayerGroup: L.LayerGroup | null = null;
 
   constructor() { }
 
   ngOnInit(): void {
     if (this.map) {
-      this.layerGroup = L.layerGroup().addTo(this.map);
+      this.embalseLayerGroup = L.layerGroup().addTo(this.map);
       this.renderMarkers();
     }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     // Re-render whenever reservoir data or icon size changes
-    if ((changes['reservoirs'] || changes['iconSize']) && this.layerGroup) {
+    if ((changes['reservoirs'] || changes['iconSize']) && this.embalseLayerGroup) {
       this.renderMarkers();
     }
   }
 
   ngOnDestroy(): void {
-    this.layerGroup?.clearLayers();
-    this.layerGroup?.remove();
+    this.embalseLayerGroup?.clearLayers();
+    this.embalseLayerGroup?.remove();
   }
 
   private renderMarkers(): void {
-    if (!this.layerGroup) return;
-    this.layerGroup.clearLayers();
+    if (!this.embalseLayerGroup) return;
+    this.embalseLayerGroup.clearLayers();
 
     for (const reservoir of this.reservoirs) {
       const icon   = createReservoirIcon(reservoir, this.iconSize);
@@ -58,7 +58,7 @@ export class EmbalseMarkerComponent implements OnInit {
       // Optional: open popup on hover too
       marker.on('mouseover', () => marker.openPopup());
 
-      marker.addTo(this.layerGroup);
+      marker.addTo(this.embalseLayerGroup);
     }
   }
 

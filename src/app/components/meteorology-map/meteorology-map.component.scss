@@ -1,10 +1,12 @@
 /* 1. Dimensiones del mapa */
 .map-container {
   width: 100%;
-  height: 100%; /* Media pantalla */
+  height: 100%;
+  /* Media pantalla */
   min-height: 400px;
   background-color: #f8f9fa;
-  border-bottom: 2px solid #00ffcc; /* Estética acorde a tu cuenca */
+  border-bottom: 2px solid #00ffcc;
+  /* Estética acorde a tu cuenca */
   outline: 1px solid transparent;
   box-shadow: 0 0 0 1px transparent;
   border: none;
@@ -14,28 +16,31 @@
 /* Usamos ::ng-deep porque Leaflet crea estos elementos fuera del scope de Angular */
 ::ng-deep .custom-precip-icon {
   .marker-circle {
-    width: 24px;   /* 👈 Consistente con el TypeScript */
+    width: 24px;
+    /* 👈 Consistente con el TypeScript */
     height: 24px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(255, 255, 255, 0.6); // Borde más fino y translúcido
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-    
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+
     span {
       color: rgb(255, 255, 255);
-      font-size: 9px;  /* 👈 Fuente más pequeña pero legible */
+      font-size: 9px;
+      /* 👈 Fuente más pequeña pero legible */
       font-weight: 600;
-      text-shadow: none; 
+      text-shadow: none;
     }
   }
 }
 
 #mapId {
+
   // Filtro para suavizar la unión de los colores y crear el efecto de área
   ::ng-deep .leaflet-canvas-layer {
-    filter: blur(4px) saturate(1.2); 
+    filter: blur(4px) saturate(1.2);
     // blur: funde los círculos en áreas continuas
     // saturate: hace que los colores sean vivos como en AEMET
   }
@@ -46,3 +51,115 @@
   }
 }
 
+.map-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px 9px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 11, 20, 0.92);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #3a4459;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+
+  &:hover {
+    transform: translateY(-1px);
+    color: #5a6478;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &.on-teal {
+    border-color: rgba(6, 182, 212, 0.5);
+    color: #67e8f9;
+    background: rgba(6, 182, 212, 0.15);
+    box-shadow:
+      0 0 0 1px rgba(6, 182, 212, 0.2),
+      0 4px 24px rgba(6, 182, 212, 0.25),
+      0 4px 16px rgba(0, 0, 0, 0.5), // ← sombra negra añadida
+      inset 0 1px 0 rgba(6, 182, 212, 0.1);
+
+    .chip-icon {
+      background: rgba(6, 182, 212, 0.18);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+
+      svg {
+        filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.8));
+      }
+    }
+
+    .chip-dot {
+      background: #06b6d4;
+      box-shadow: 0 0 6px #06b6d4;
+    }
+  }
+
+  &.on-violet {
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, 0.15);
+    box-shadow:
+      0 0 0 1px rgba(139, 92, 246, 0.2),
+      0 4px 24px rgba(139, 92, 246, 0.25),
+      0 4px 16px rgba(0, 0, 0, 0.5), // ← sombra negra añadida
+      inset 0 1px 0 rgba(139, 92, 246, 0.1);
+
+    .chip-icon {
+      background: rgba(139, 92, 246, 0.18);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
+
+      svg {
+        filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.8));
+      }
+    }
+
+    .chip-dot {
+      background: #8b5cf6;
+      box-shadow: 0 0 6px #8b5cf6;
+    }
+  }
+}
+
+.chip-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.chip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #1e2535;
+  margin-left: 2px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}

@@ -1,8 +1,8 @@
 import { Component, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { EstacionesService} from '../../services/estaciones.service';
-import { EmbalseService} from '../../services/embalse.service';
+import { EstacionesService } from '../../services/estaciones.service';
+import { EmbalseService } from '../../services/embalse.service';
 import { Subscription } from 'rxjs';
 import { ReservoirData } from './embalse-marker/embalse-icon.utils';
 import { EmbalseMarkerComponent } from './embalse-marker/embalse-marker.component';
@@ -24,15 +24,33 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   private jsonPrecipitaciones: any[] = [];
   private estacionesService: EstacionesService = inject(EstacionesService);
   private embalseService: EmbalseService = inject(EmbalseService);
+  private embalseLayerGroup: L.LayerGroup = L.layerGroup();
   private ubicacionEstaciones: L.LayerGroup = L.layerGroup();
   private colorTexto: String;
   public reservoirs: ReservoirData[] = [];
   private sub!: Subscription;
+  public showEmbalses: boolean = true;
+  public showEstaciones: boolean = true;
+  @ViewChild('embalseMarker') embalseMarker!: EmbalseMarkerComponent;
 
   public rango: string = 'mes';
 
   ngAfterViewInit() {
     this.initMap();
+  }
+
+  toggleLayer(layer: 'embalses' | 'estaciones') {
+    if (layer === 'embalses') {
+      this.showEmbalses = !this.showEmbalses;
+      this.showEmbalses
+        ? this.embalseMarker.embalseLayerGroup?.addTo(this.map)
+        : this.embalseMarker.embalseLayerGroup?.remove();
+    } else {
+      this.showEstaciones = !this.showEstaciones;
+      this.showEstaciones
+        ? this.ubicacionEstaciones.addTo(this.map)
+        : this.ubicacionEstaciones.remove();
+    }
   }
 
   private initMap(): void {
@@ -96,7 +114,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
         lat: emb.latitud,
         lng: emb.longitud,
         percentageFull: emb.porcentaje,
-        currentVolume : emb.hm3,
+        currentVolume: emb.hm3,
         maxVolume: emb.capacidadMaximaEmbalse,
       } as ReservoirData));
     });
@@ -165,7 +183,7 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   }
 
   private getColorLluvia(valor: number): string {
-    if (!valor || valor === 0) return '#bdc3c7'; // Gris
+    if (!valor || valor === 0) return '#ffffff1b'; // Gris
     if (valor < 1) return '#ffffcc';            // 0.1 a 4.99
     if (valor < 2) return '#ccff99';           // 5.0 a 9.99
     if (valor < 5) return '#99ff99';           // 5.0 a 9.99
