@@ -66,12 +66,9 @@
   gap: 8px;
   padding: 9px 16px 9px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(8, 11, 20, 0.92);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: #3a4459;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1a2035;  /* ← fondo oscuro sólido, sin transparencia */
+  color: #4a5568;
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -83,26 +80,23 @@
   &:hover {
     transform: translateY(-1px);
     color: #5a6478;
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.12);
+    background: #1f2740;
   }
 
+  /* ACTIVO — Embalses (teal/azul) */
   &.on-teal {
-    border-color: rgba(6, 182, 212, 0.5);
+    background: #0e2a3a;
+    border-color: #06b6d4;
     color: #67e8f9;
-    background: rgba(6, 182, 212, 0.15);
     box-shadow:
-      0 0 0 1px rgba(6, 182, 212, 0.2),
-      0 4px 24px rgba(6, 182, 212, 0.25),
-      0 4px 16px rgba(0, 0, 0, 0.5), // ← sombra negra añadida
-      inset 0 1px 0 rgba(6, 182, 212, 0.1);
+      0 0 0 1px rgba(6, 182, 212, 0.3),
+      0 4px 16px rgba(6, 182, 212, 0.25);
 
     .chip-icon {
-      background: rgba(6, 182, 212, 0.18);
-      box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
-
-      svg {
-        filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.8));
-      }
+      background: #0e4a5a;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+      svg { filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.9)); }
     }
 
     .chip-dot {
@@ -111,23 +105,19 @@
     }
   }
 
+  /* ACTIVO — Estaciones (violet/morado) */
   &.on-violet {
-    border-color: rgba(139, 92, 246, 0.5);
+    background: #1e1535;
+    border-color: #8b5cf6;
     color: #c4b5fd;
-    background: rgba(139, 92, 246, 0.15);
     box-shadow:
-      0 0 0 1px rgba(139, 92, 246, 0.2),
-      0 4px 24px rgba(139, 92, 246, 0.25),
-      0 4px 16px rgba(0, 0, 0, 0.5), // ← sombra negra añadida
-      inset 0 1px 0 rgba(139, 92, 246, 0.1);
+      0 0 0 1px rgba(139, 92, 246, 0.3),
+      0 4px 16px rgba(139, 92, 246, 0.25);
 
     .chip-icon {
-      background: rgba(139, 92, 246, 0.18);
-      box-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
-
-      svg {
-        filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.8));
-      }
+      background: #2e1a5a;
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+      svg { filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.9)); }
     }
 
     .chip-dot {
@@ -144,21 +134,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   flex-shrink: 0;
   transition: all 0.2s;
 
-  svg {
-    width: 14px;
-    height: 14px;
-  }
+  svg { width: 14px; height: 14px; }
 }
 
 .chip-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #1e2535;
+  background: #2a3348;
   margin-left: 2px;
   flex-shrink: 0;
   transition: all 0.2s;
