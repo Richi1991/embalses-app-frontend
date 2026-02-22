@@ -1,9 +1,9 @@
-const fs   = require('fs');
+const fs = require('fs');
 require('dotenv').config();
 
 const content = `
 export const environment = {
-  production: false,
+  production: ${process.env.NODE_ENV === 'production' ? 'true' : 'false'},
   firebase: {
     apiKey:            '${process.env.FIREBASE_API_KEY}',
     authDomain:        '${process.env.FIREBASE_AUTH_DOMAIN}',
@@ -17,4 +17,5 @@ export const environment = {
 `;
 
 fs.writeFileSync('./src/environments/environment.ts', content);
+fs.writeFileSync('./src/environments/environment.prod.ts', content); // ← añade esta línea
 console.log('✅ environment.ts generado correctamente');
