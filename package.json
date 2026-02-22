@@ -12,7 +12,7 @@
     "lint": "ng lint",
     "set-env": "node set-env.js",
     "start": "npm run set-env && ionic serve",
-    "build": "npm run set-env && ionic build"
+    "build": "npm run set-env && npx ionic build"
   },
   "private": true,
   "dependencies": {
