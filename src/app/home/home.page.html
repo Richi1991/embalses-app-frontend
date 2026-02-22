@@ -6,19 +6,21 @@
       <div class="card-title total_embalses">
         <ion-icon name="rainy-outline"></ion-icon>
         <span>Precipitaciones y Estado Embalses</span>
-        <div class="time-filters">
-          <button [class.active]="mapaMeteorologico.rango === '1 day'"
-        (click)="mapaMeteorologico.rango = '1 day'; mapaMeteorologico.cargarDatosEstaciones()">1d</button>
-          <button [class.active]="mapaMeteorologico.rango === '1 week'"
-                  (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('1 week')">7d</button>
-          <button [class.active]="mapaMeteorologico.rango === '1 month'"
-                  (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('1 month')">1m</button>
-          <button [class.active]="mapaMeteorologico.rango === '3 months'"
-                  (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('3 months')">3m</button>
-          <button [class.active]="mapaMeteorologico.rango === '6 months'"
-                  (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('6 months')">6m</button>
-          <button [class.active]="mapaMeteorologico.rango === '1 year'"
-                  (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('1 year')">1A</button>
+        <div class="time-filters-wrapper">
+          <div class="time-filters">
+            <button [class.active]="mapaMeteorologico.rango === '1 day'"
+          (click)="mapaMeteorologico.rango = '1 day'; mapaMeteorologico.cargarDatosEstaciones()">1d</button>
+            <button [class.active]="mapaMeteorologico.rango === '1 week'"
+                    (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('1 week')">7d</button>
+            <button [class.active]="mapaMeteorologico.rango === '1 month'"
+                    (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('1 month')">1m</button>
+            <button [class.active]="mapaMeteorologico.rango === '3 months'"
+                    (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('3 months')">3m</button>
+            <button [class.active]="mapaMeteorologico.rango === '6 months'"
+                    (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('6 months')">6m</button>
+            <button [class.active]="mapaMeteorologico.rango === '1 year'"
+                    (click)="mapaMeteorologico.mostrarHistoricoPrecipitaciones('1 year')">1A</button>
+          </div>
         </div>
       </div>
 
