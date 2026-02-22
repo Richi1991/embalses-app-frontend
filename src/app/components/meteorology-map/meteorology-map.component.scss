@@ -67,7 +67,8 @@
   padding: 9px 16px 9px 10px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #1a2035;  /* ← fondo oscuro sólido, sin transparencia */
+  background: #1a2035;
+  /* ← fondo oscuro sólido, sin transparencia */
   color: #4a5568;
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
@@ -96,12 +97,39 @@
     .chip-icon {
       background: #0e4a5a;
       box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
-      svg { filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.9)); }
+
+      svg {
+        filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.9));
+      }
     }
 
     .chip-dot {
       background: #06b6d4;
       box-shadow: 0 0 6px #06b6d4;
+    }
+  }
+
+  /* ACTIVO — Cauces (blue/río) */
+  &.on-blue {
+    background: #0f1e3a;
+    border-color: #3b82f6;
+    color: #93c5fd;
+    box-shadow:
+      0 0 0 1px rgba(59, 130, 246, 0.3),
+      0 4px 16px rgba(59, 130, 246, 0.25);
+
+    .chip-icon {
+      background: #1a3a6a;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+
+      svg {
+        filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.9));
+      }
+    }
+
+    .chip-dot {
+      background: #3b82f6;
+      box-shadow: 0 0 6px #3b82f6;
     }
   }
 
@@ -117,7 +145,10 @@
     .chip-icon {
       background: #2e1a5a;
       box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-      svg { filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.9)); }
+
+      svg {
+        filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.9));
+      }
     }
 
     .chip-dot {
@@ -138,7 +169,10 @@
   flex-shrink: 0;
   transition: all 0.2s;
 
-  svg { width: 14px; height: 14px; }
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .chip-dot {

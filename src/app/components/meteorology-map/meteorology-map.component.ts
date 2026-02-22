@@ -32,6 +32,11 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
   public showEstaciones: boolean = true;
   private viewMode: 'actual' | 'historico' = 'actual';
   private currentRango: string = '1 day';
+  showCauces: boolean = false;
+  caucesLayer: L.GeoJSON | null = null;
+  caucesLoaded: boolean = false;
+  private caucesData: any = null;
+
 
   @ViewChild('embalseMarker') embalseMarker!: EmbalseMarkerComponent;
 
@@ -72,6 +77,11 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
       if (this.showEmbalses) {
         this.embalseMarker?.renderMarkers();
       }
+      if (this.showCauces && this.caucesLayer) {
+        this.caucesLayer.setStyle({
+          weight: this.getCauceWeight()
+        });
+      }
     });
 
     // Forzar a que Leaflet recalcule el tamaño (evita fallos de renderizado)
@@ -90,17 +100,47 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  toggleLayer(layer: 'embalses' | 'estaciones') {
-    if (layer === 'embalses') {
-      this.showEmbalses = !this.showEmbalses;
-      this.showEmbalses
-        ? this.embalseMarker.embalseLayerGroup?.addTo(this.map)
-        : this.embalseMarker.embalseLayerGroup?.remove();
-    } else {
-      this.showEstaciones = !this.showEstaciones;
-      this.showEstaciones
-        ? this.ubicacionEstaciones.addTo(this.map)
-        : this.ubicacionEstaciones.remove();
+  toggleLayer(layer: string) {
+    switch (layer) {
+      case 'embalses':
+        this.showEmbalses = !this.showEmbalses;
+        this.showEmbalses
+          ? this.embalseMarker.embalseLayerGroup?.addTo(this.map)
+          : this.embalseMarker.embalseLayerGroup?.remove();
+        break;
+      case 'estaciones':
+        this.showEstaciones = !this.showEstaciones;
+        this.showEstaciones
+          ? this.ubicacionEstaciones.addTo(this.map)
+          : this.ubicacionEstaciones.remove();
+        break;
+      case 'cauces':
+        this.showCauces = !this.showCauces;
+        if (!this.caucesLoaded) {
+          fetch('assets/data/red_hidrografica.geojson')
+            .then(r => r.json())
+            .then(data => {
+              this.caucesData = data; // guardar referencia al data
+              this.caucesLayer = L.geoJSON(data, {
+                style: {
+                  color: '#3b82f6',
+                  weight: this.getCauceWeight(),
+                  opacity: 0.8
+                },
+                onEachFeature: (feature, layer) => {
+                  layer.bindPopup(`<b>${feature.properties.nombre}</b>`);
+                }
+              }).addTo(this.map);
+              this.caucesLoaded = true;
+            });
+        } else {
+          if (this.showCauces) {
+            this.caucesLayer!.addTo(this.map);
+          } else {
+            this.map.removeLayer(this.caucesLayer!);
+          }
+        }
+        break;
     }
   }
 
@@ -269,6 +309,17 @@ export class MeteorologyMapComponent implements AfterViewInit, OnDestroy {
     if (this.map) {
       this.map.remove();
     }
+  }
+
+  private getCauceWeight(): number {
+    const zoom = this.map.getZoom();
+    if (zoom <= 6) return 0.5;
+    if (zoom <= 7) return 0.8;
+    if (zoom <= 8) return 1.2;
+    if (zoom <= 9) return 1.8;
+    if (zoom <= 10) return 2.5;
+    if (zoom <= 11) return 3.5;
+    return 5;
   }
 
   mostrarHistoricoPrecipitaciones(rango: string) {
