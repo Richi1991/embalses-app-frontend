@@ -4,13 +4,13 @@
 export const environment = {
   production: false,
   firebase: {
-    apiKey:            "AIzaSyDO_kwNsftH62q5vmWWk1hwxeA_T0v-91Q",
-    authDomain:        "embalses-51bdd.firebaseapp.com",
-    projectId:         "embalses-51bdd",
-    storageBucket:     "embalses-51bdd.firebasestorage.app",
-    messagingSenderId: "56742035827",
-    appId:             "1:56742035827:web:cc5fc8a3c8e213f28fc506",
-    measurementId:     "G-ZZ2EL16G0F"
+    apiKey:            process.env['FIREBASE_API_KEY']            || '',
+    authDomain:        process.env['FIREBASE_AUTH_DOMAIN']        || '',
+    projectId:         process.env['FIREBASE_PROJECT_ID']         || '',
+    storageBucket:     process.env['FIREBASE_STORAGE_BUCKET']     || '',
+    messagingSenderId: process.env['FIREBASE_MESSAGING_SENDER_ID']|| '',
+    appId:             process.env['FIREBASE_APP_ID']             || '',
+    measurementId:     process.env['FIREBASE_MEASUREMENT_ID']     || '',
   }
 };
 

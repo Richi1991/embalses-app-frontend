@@ -32,3 +32,8 @@ node_modules/
 .angular/
 dist/
 www/
+
+# .gitignore
+.env
+.env.local
+.env.production
