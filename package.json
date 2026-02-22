@@ -5,14 +5,12 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "npm run set-env && ionic serve",
+    "build": "npm run set-env && npx ionic build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "set-env": "node set-env.js",
-    "start": "npm run set-env && ionic serve",
-    "build": "npm run set-env && ionic build"
+    "set-env": "node set-env.js"
   },
   "private": true,
   "dependencies": {
@@ -33,7 +31,7 @@
     "@ionic/angular": "^8.0.0",
     "@turf/turf": "^7.3.1",
     "chart.js": "^4.5.1",
-    "firebase": "^12.9.0",
+    "firebase": "^11.10.0",
     "ionicons": "^7.0.0",
     "leaflet": "^1.9.4",
     "maplibre-gl": "^5.15.0",
@@ -53,6 +51,7 @@
     "@angular/language-service": "^20.0.0",
     "@capacitor/cli": "8.0.0",
     "@ionic/angular-toolkit": "^12.0.0",
+    "@ionic/cli": "^7.2.1",
     "@types/jasmine": "~5.1.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^25.3.0",

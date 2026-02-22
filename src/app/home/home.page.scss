@@ -2,13 +2,13 @@
 $rev-gradient: linear-gradient(90deg, #7f7fd5, #86a8e7, #91eae4);
 
 :host {
-  --bg-dark:      #0b0e11;
-  --bg-card:      #1e222d;
-  --text-gray:    #848e9c;
-  --accent-blue:  #0e66ff;
+  --bg-dark: #0b0e11;
+  --bg-card: #1e222d;
+  --text-gray: #848e9c;
+  --accent-blue: #0e66ff;
   --accent-green: #00ff84;
-  --accent-red:   #ff4566;
-  --border:       1px solid rgba(255, 255, 255, 0.1);
+  --accent-red: #ff4566;
+  --border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 // ─── LAYOUT PRINCIPAL ────────────────────────────────────────
@@ -38,14 +38,27 @@ $rev-gradient: linear-gradient(90deg, #7f7fd5, #86a8e7, #91eae4);
 
   .map-wrapper {
     width: 100%;
-    height: 90vh;        // ← mapa ocupa casi toda la pantalla
+    height: 80dvh; // móvil
     position: relative;
     margin-top: 15px;
     border-radius: 12px;
     overflow: hidden;
+
+    @media (min-width: 768px) {
+      // tablet
+      height: 70dvh;
+    }
+
+    @media (min-width: 1024px) {
+      // desktop
+      height: 65dvh;
+    }
   }
 
-  .leaflet-container { background: #000; }
+  .leaflet-container {
+    background: #000;
+  }
+
   .leaflet-tile {
     border: none !important;
     outline: none !important;
@@ -100,10 +113,17 @@ app-meteorology-map {
   font-size: 1.1rem;
   margin-bottom: 15px;
 
-  &.subidas      { color: var(--accent-green); }
-  &.bajadas      { color: var(--accent-red); }
+  &.subidas {
+    color: var(--accent-green);
+  }
+
+  &.bajadas {
+    color: var(--accent-red);
+  }
+
   &.total_embalses {
     color: var(--accent-blue);
+
     span {
       font-size: 1.1rem;
       font-weight: 700;
@@ -146,7 +166,9 @@ app-meteorology-map {
 }
 
 @keyframes waveMove {
-  to { transform: translateX(-50%); }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 // ─── VALORES PRINCIPALES ─────────────────────────────────────
@@ -155,7 +177,10 @@ app-meteorology-map {
   font-weight: bold;
   color: #fff;
 
-  span  { font-size: 0.9rem; color: var(--text-gray); }
+  span {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+  }
 }
 
 // ─── BADGES Y VARIACIONES ────────────────────────────────────
@@ -163,8 +188,13 @@ app-meteorology-map {
 .badge {
   font-weight: bold;
 
-  &.positive { color: var(--accent-green); }
-  &.negative { color: var(--accent-red); }
+  &.positive {
+    color: var(--accent-green);
+  }
+
+  &.negative {
+    color: var(--accent-red);
+  }
 }
 
 .badge {
@@ -173,8 +203,13 @@ app-meteorology-map {
   border-radius: 4px;
   margin-top: 4px;
 
-  &.positive { background: rgba(0, 255, 132, 0.15); }
-  &.negative { background: rgba(255, 69, 102, 0.15); }
+  &.positive {
+    background: rgba(0, 255, 132, 0.15);
+  }
+
+  &.negative {
+    background: rgba(255, 69, 102, 0.15);
+  }
 }
 
 // ─── BOTONES FILTRO ──────────────────────────────────────────
@@ -199,8 +234,8 @@ app-meteorology-map {
     }
 
     &.active {
-      background: rgba(41, 98, 255, 0.2);  // ← fondo azul semitransparente
-      color: #6c9fff;                        // ← texto azul claro
+      background: rgba(41, 98, 255, 0.2); // ← fondo azul semitransparente
+      color: #6c9fff; // ← texto azul claro
       border: 1px solid rgba(41, 98, 255, 0.4); // ← borde sutil
     }
   }
@@ -225,9 +260,20 @@ app-meteorology-map {
     font-weight: bold;
   }
 
-  .label-nombre    { flex: 2; padding-left: 25px; }
-  .label-porcentaje { flex: 1; text-align: center; }
-  .label-stats     { flex: 1.5; text-align: right; }
+  .label-nombre {
+    flex: 2;
+    padding-left: 25px;
+  }
+
+  .label-porcentaje {
+    flex: 1;
+    text-align: center;
+  }
+
+  .label-stats {
+    flex: 1.5;
+    text-align: right;
+  }
 }
 
 .fintech-row {
@@ -240,7 +286,11 @@ app-meteorology-map {
     align-items: center;
   }
 
-  .rank   { color: var(--text-gray); width: 20px; font-size: 0.8rem; }
+  .rank {
+    color: var(--text-gray);
+    width: 20px;
+    font-size: 0.8rem;
+  }
 
   .nombre {
     color: #fff;
@@ -248,10 +298,16 @@ app-meteorology-map {
     font-size: 0.85rem;
     cursor: pointer;
 
-    &:hover { text-decoration: underline; color: #2962ff; }
+    &:hover {
+      text-decoration: underline;
+      color: #2962ff;
+    }
   }
 
-  .center-pill { flex: 1; text-align: center; }
+  .center-pill {
+    flex: 1;
+    text-align: center;
+  }
 
   .porcentaje-badge {
     background: rgba(255, 255, 255, 0.08);
@@ -285,9 +341,14 @@ app-meteorology-map {
   margin-top: 15px;
   position: relative;
 
-  @media (min-width: 768px) { height: 350px; }
+  @media (min-width: 768px) {
+    height: 350px;
+  }
 
-  canvas { width: 100% !important; height: 100% !important; }
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
 }
 
 // ─── GRID CARDS ──────────────────────────────────────────────
@@ -298,11 +359,16 @@ app-meteorology-map {
 
   @media (min-width: 768px) {
     flex-direction: row;
-    & > div { flex: 1; }
+
+    &>div {
+      flex: 1;
+    }
   }
 }
 
 // ─── UTILIDADES ──────────────────────────────────────────────
 @media (max-width: 600px) {
-  .hide-mobile { display: none !important; }
+  .hide-mobile {
+    display: none !important;
+  }
 }
