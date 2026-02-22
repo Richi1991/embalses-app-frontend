@@ -16,6 +16,7 @@
 # Entorno y Secretos
 .env
 .env.local
+src/environments/environment.ts 
 src/environments/environment.prod.ts  # Opcional: si manejas keys sensibles aquí
 
 # Logs

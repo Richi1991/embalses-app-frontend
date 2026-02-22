@@ -9,7 +9,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "set-env": "node set-env.js",
+    "start": "npm run set-env && ionic serve",
+    "build": "npm run set-env && ionic build"
   },
   "private": true,
   "dependencies": {
@@ -52,8 +55,10 @@
     "@ionic/angular-toolkit": "^12.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/leaflet": "^1.9.21",
+    "@types/node": "^25.3.0",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
+    "dotenv": "^17.3.1",
     "eslint": "^9.16.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^48.2.1",
