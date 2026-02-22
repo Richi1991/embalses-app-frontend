@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics, logEvent } from 'firebase/analytics';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { environment } from '../environments/environment';
+import { CookieConsentService } from './services/cookie-consent.service';
 
 
 @Component({
@@ -11,11 +12,10 @@ import { environment } from '../environments/environment';
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent implements OnInit {
-  constructor() {}
+  
+  constructor(private cookieConsent: CookieConsentService) {}
 
-   ngOnInit() {
-    const app       = initializeApp(environment.firebase);
-    const analytics = getAnalytics(app);
-    logEvent(analytics, 'app_open');
+  ngOnInit() {
+    this.cookieConsent.initAnalyticsIfConsented();
   }
 }

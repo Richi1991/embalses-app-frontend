@@ -1,0 +1,12 @@
+<div class="cookie-banner" *ngIf="visible">
+  <div class="cookie-content">
+    <p>
+      Usamos cookies analíticas para mejorar la app. 
+      <a href="/privacidad" target="_blank">Más info</a>
+    </p>
+    <div class="cookie-actions">
+      <button class="reject" (click)="reject()">Rechazar</button>
+      <button class="accept" (click)="accept()">Aceptar</button>
+    </div>
+  </div>
+</div>
