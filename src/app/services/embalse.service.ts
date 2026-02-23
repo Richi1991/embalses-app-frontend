@@ -48,7 +48,7 @@ export class EmbalseService {
     });
   }
 
-  getHistoricoCuencaSeguraList(): Observable<HistoricoCuenca[]> {
+  getHistoricoCuencaSegura(): Observable<HistoricoCuenca[]> {
     if (this.cacheHistoricoLargo) return of(this.cacheHistoricoLargo);
 
     return this.http.get<HistoricoCuenca[]>(this.apiUrlHistoricoCuenca).pipe(
@@ -70,7 +70,7 @@ export class EmbalseService {
     return this.http.get<Embalse[]>(url);
   }
 
-   getIconoEmbalse(): Observable<Embalse[]> {
+  getEmbalsesLastValueAndPosition(): Observable<Embalse[]> {
     const url = `${this.apiUrlIconoEmbalse}`;
     return this.http.get<Embalse[]>(url);
   }

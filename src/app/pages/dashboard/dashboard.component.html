@@ -1,0 +1,177 @@
+<ion-content [fullscreen]="true" class="dash-content">
+
+  <!-- NAV -->
+  <div class="dash-nav">
+    <div class="nav-left">
+      <div class="nav-dot"></div>
+      <div>
+        <div class="nav-brand">Embalses CHS</div>
+        <div class="nav-date">{{ currentDate }}</div>
+      </div>
+    </div>
+    <div class="period-selector">
+      <button *ngFor="let p of ['1D','7D','1M','3M','6M','1A']"
+        class="period-btn"
+        [class.active]="activePeriod === p"
+        (click)="setPeriod(p)">{{ p }}</button>
+    </div>
+    <div class="nav-right">
+      <span class="live-badge"><span class="live-dot"></span>EN VIVO</span>
+      <span class="clock">{{ currentTime }}</span>
+      <button class="map-btn" (click)="goToMapa()">
+        <ion-icon name="map-outline"></ion-icon> Mapa
+      </button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+
+    <!-- HERO KPI -->
+    <div class="hero-kpi">
+      <div class="kpi-label">Volumen Total Embalsado</div>
+      <div class="kpi-main">
+        <div class="kpi-value">
+          {{ totalVol | number:'1.0-0' }}<span class="kpi-decimal">.{{ (totalVol % 1 * 100 | number:'2.0-0') }}</span>
+        </div>
+        <div class="kpi-unit">hm³</div>
+        <div class="kpi-delta" [class.down]="variacion24h < 0">
+          {{ variacion24h >= 0 ? '▲' : '▼' }}
+          {{ variacion24h > 0 ? '+' : '' }}{{ variacion24h | number:'1.2-2' }} hm³ hoy
+        </div>
+      </div>
+      <div class="capacity-bar-wrap">
+        <div class="cap-bar-header">
+          <span>0 hm³</span>
+          <span class="cap-pct">{{ totalPct | number:'1.2-2' }}% CAPACIDAD</span>
+          <span>{{ totalCap | number:'1.0-0' }} hm³</span>
+        </div>
+        <div class="capacity-bar">
+          <div class="capacity-fill" [style.width.%]="totalPct"></div>
+        </div>
+      </div>
+      <div class="kpi-secondary">
+        <div class="kpi-sec-item">
+          <div class="kpi-sec-label">Porcentaje</div>
+          <div class="kpi-sec-value green">{{ totalPct | number:'1.2-2' }}%</div>
+        </div>
+        <div class="kpi-sec-item">
+          <div class="kpi-sec-label">Embalses</div>
+          <div class="kpi-sec-value">{{ embalses.length }}</div>
+        </div>
+        <div class="kpi-sec-item">
+          <div class="kpi-sec-label">+50%</div>
+          <div class="kpi-sec-value blue">{{ encimaMitad }}</div>
+        </div>
+        <div class="kpi-sec-item">
+          <div class="kpi-sec-label">Alerta</div>
+          <div class="kpi-sec-value yellow">{{ embalsesAlerta }}</div>
+        </div>
+        <div class="kpi-sec-item">
+          <div class="kpi-sec-label">Críticos</div>
+          <div class="kpi-sec-value red">{{ embalsesCriticos }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Evolución Histórica</span>
+        <div class="chart-toggle">
+          <button [class.active]="chartMode==='VOL'" (click)="setChartMode('VOL')">VOL</button>
+          <button [class.active]="chartMode==='PCT'" (click)="setChartMode('PCT')">PCT</button>
+        </div>
+      </div>
+      <canvas #chartCanvas height="160"></canvas>
+    </div>
+
+    <!-- RIGHT COL -->
+    <div class="right-col">
+
+      <!-- TOP MOVERS TABS -->
+      <div class="card movers-card">
+        <div class="movers-tabs">
+          <button [class.active]="activeTab==='subidas'" (click)="activeTab='subidas'">
+            ▲ Subidas
+          </button>
+          <button [class.active]="activeTab==='bajadas'" (click)="activeTab='bajadas'">
+            ▼ Bajadas
+          </button>
+          <button [class.active]="activeTab==='todos'" (click)="activeTab='todos'">
+            Todos
+          </button>
+        </div>
+
+        <ng-container *ngIf="activeTab === 'subidas'">
+          <div class="mover-item" *ngFor="let e of topSubidas; let i = index"
+            (click)="goToEmbalse(e.idEmbalse)">
+            <div class="mover-rank">{{ i + 1 }}</div>
+            <div class="mover-info">
+              <div class="mover-name">{{ e.nombre }}</div>
+              <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} hm³ · {{ e.porcentaje | number:'1.1-1' }}%</div>
+              <div class="mini-bar">
+                <div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#00d4aa"></div>
+              </div>
+            </div>
+            <div class="mover-delta up">+{{ e.variacion | number:'1.2-2' }}</div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="activeTab === 'bajadas'">
+          <div class="mover-item" *ngFor="let e of topBajadas; let i = index"
+            (click)="goToEmbalse(e.idEmbalse)">
+            <div class="mover-rank">{{ i + 1 }}</div>
+            <div class="mover-info">
+              <div class="mover-name">{{ e.nombre }}</div>
+              <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} hm³ · {{ e.porcentaje | number:'1.1-1' }}%</div>
+              <div class="mini-bar">
+                <div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#ff4d6d"></div>
+              </div>
+            </div>
+            <div class="mover-delta down">{{ e.variacion | number:'1.2-2' }}</div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="activeTab === 'todos'">
+          <div class="mover-item" *ngFor="let e of embalses.slice(0,8)"
+            (click)="goToEmbalse(e.idEmbalse)">
+            <div class="list-indicator" [style.background]="getPctColor(e.porcentaje)"></div>
+            <div class="mover-info">
+              <div class="mover-name">{{ e.nombre }}</div>
+              <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} / {{ e.capacidadMaximaEmbalse }} hm³</div>
+            </div>
+            <div class="mover-delta" [style.color]="getPctColor(e.porcentaje)">
+              {{ e.porcentaje | number:'1.1-1' }}%
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM STATS -->
+    <div class="bottom-stats">
+      <div class="stat-card green">
+        <div class="stat-label">Embalses por encima del 50%</div>
+        <div class="stat-value">{{ encimaMitad }}</div>
+        <div class="stat-sub">de {{ embalses.length }} embalses</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Capacidad total cuenca</div>
+        <div class="stat-value">{{ totalCap | number:'1.0-0' }}</div>
+        <div class="stat-sub">hm³ máximo</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">Embalses en alerta</div>
+        <div class="stat-value">{{ embalsesAlerta }}</div>
+        <div class="stat-sub">por debajo del 25%</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Embalses críticos</div>
+        <div class="stat-value">{{ embalsesCriticos }}</div>
+        <div class="stat-sub">por debajo del 15%</div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

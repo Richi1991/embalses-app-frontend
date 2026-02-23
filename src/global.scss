@@ -44,32 +44,26 @@ html, body {
   height: 100% !important;
 }
 
-/* FIX definitivo para líneas blancas en Leaflet */
-.leaflet-container {
-  background: #0b1220; /* o el color base de tu dashboard */
+// Popup oscuro de Leaflet — añadir en src/global.scss
+.leaflet-popup-content-wrapper {
+  background: rgba(13,20,32,0.96) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+  color: #e8edf5 !important;
+  font-family: 'Syne', sans-serif !important;
 }
 
-.leaflet-tile {
-  border: none !important;
-  outline: none !important;
-  margin: -1px !important;   /* 🔥 CLAVE */
+.leaflet-popup-tip {
+  background: rgba(13,20,32,0.96) !important;
 }
 
-
-/* Asegura que el contenedor de Ionic no bloquee el scroll */
-ion-content {
-  --overflow: auto;
-  overflow: auto;
-  touch-action: pan-y !important; /* Permite el scroll vertical en móviles */
+.leaflet-popup-close-button {
+  color: #6b7a90 !important;
 }
 
-/* Evita que el "dashboard-grid" colapse o bloquee el gesto */
-.dashboard-grid {
-  display: block; /* Asegura que fluya verticalmente */
-  padding-bottom: 50px; /* Margen extra para que la última tarjeta no se corte */
+.leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.75) saturate(0.6);
 }
 
-/* Fix para Safari en iPhone */
-.ios ion-content {
-  -webkit-overflow-scrolling: touch;
-}
+.leaflet-control-attribution { display: none !important; }

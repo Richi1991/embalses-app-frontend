@@ -1,9 +1,7 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { EmbalseHistoricoComponent } from './components/embalse-historico/embalse-historico.component'; 
+import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: 'home', loadComponent: () => import('./home/home.page').then((m) => m.HomePage),},
-  { path: 'embalse-historico/:id', component: EmbalseHistoricoComponent},
-  { path: '', redirectTo: 'home', pathMatch: 'full',},
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full'},
+  { path: 'dashboard', loadChildren: () => import('./pages/dashboard/dashboard.module').then(m => m.DashboardPageModule)},
+  { path: 'mapa', loadChildren: () => import('./pages/mapa/mapa.module').then(m => m.MapaModule) }
 ];
