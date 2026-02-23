@@ -4,9 +4,10 @@ import {
   NgZone, ChangeDetectorRef
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { interval, Subscription } from 'rxjs';
+import { interval, Subscription, forkJoin } from 'rxjs';
 import * as L from 'leaflet';
 import { EmbalseService, Embalse } from '../../services/embalse.service';
+import { EstacionesService, Estacion } from '../../services/estaciones.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -18,11 +19,7 @@ import { mapOutline, arrowBackOutline } from 'ionicons/icons';
   templateUrl: './mapa.component.html',
   styleUrls: ['./mapa.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,   // ← esto incluye | number, | date, *ngIf, *ngFor etc
-    FormsModule,
-    IonicModule,
-  ]
+  imports: [CommonModule, FormsModule, IonicModule]
 })
 export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -31,18 +28,26 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   // Map
   private map!: L.Map;
   private embalseMarkers: Map<number, L.Marker> = new Map();
-  private estacionMarkers: L.Marker[] = [];
+  private estacionMarkersList: L.Marker[] = [];
 
-  // State
+  // State — embalses
   embalses: Embalse[] = [];
   filteredEmbalses: Embalse[] = [];
   selectedEmbalse: Embalse | null = null;
-  panelOpen = true;
+
+  // State — estaciones
+  estaciones: Estacion[] = [];
+  filteredEstaciones: Estacion[] = [];
+  selectedEstacion: Estacion | null = null;
+  loadingEstaciones = false;
+  estacionesLoaded = false;
+
+  panelOpen = window.innerWidth > 768;
   activeTab = 'embalses';
   searchQuery = '';
   currentTime = '';
   today = '';
-  layers = { embalses: true, estaciones: true, cauces: false };
+  layers = { embalses: true, estaciones: false, cauces: false };
 
   // KPIs
   totalVol = 0;
@@ -52,6 +57,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private embalseService: EmbalseService,
+    private estacionesService: EstacionesService,
     private router: Router,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
@@ -61,7 +67,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.startClock();
-    this.loadData();
+    this.loadEmbalses();
   }
 
   ngAfterViewInit() {
@@ -73,7 +79,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map) this.map.remove();
   }
 
-  // CLOCK
+  // ── CLOCK ──────────────────────────────────────────────────
   private startClock() {
     this.updateTime();
     this.clockSub = interval(1000).subscribe(() => this.updateTime());
@@ -83,13 +89,11 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     const now = new Date();
     const p = (n: number) => String(n).padStart(2, '0');
     this.currentTime = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
-    this.today = now.toLocaleDateString('es-ES', {
-      day: 'numeric', month: 'short', year: 'numeric'
-    }).toUpperCase();
+    this.today = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
   }
 
-  // DATA
-  private loadData() {
+  // ── DATA ───────────────────────────────────────────────────
+  private loadEmbalses() {
     this.embalseService.getEmbalsesLastValueAndPosition().subscribe(data => {
       this.embalses = data.sort((a, b) => b.porcentaje - a.porcentaje);
       this.filteredEmbalses = [...this.embalses];
@@ -99,38 +103,48 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private loadEstaciones() {
+    if (this.estacionesLoaded) return; // carga lazy: solo una vez
+    this.loadingEstaciones = true;
+    this.cdr.detectChanges();
+
+    this.estacionesService.getEstacionesAndPrecipitacionesUltimas24h().subscribe({
+      next: (data) => {
+        // Filtramos las que tienen coordenadas válidas
+        this.estaciones = data.filter(e => e.latitud && e.longitud);
+        this.filteredEstaciones = [...this.estaciones];
+        this.estacionesLoaded = true;
+        this.loadingEstaciones = false;
+        if (this.map) this.renderEstacionMarkers();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadingEstaciones = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   private calcKpis() {
     this.totalVol = this.embalses.reduce((s, e) => s + e.hm3, 0);
     const totalCap = this.embalses.reduce((s, e) => s + e.capacidadMaximaEmbalse, 0);
     this.totalPct = totalCap > 0 ? (this.totalVol / totalCap) * 100 : 0;
   }
 
-  // MAP
+  // ── MAP ────────────────────────────────────────────────────
   private initMap() {
     if (this.map) return;
-
     const mapContainer = document.getElementById('map');
-    if (!mapContainer) {
-      // Si todavía no existe el div, reintenta
-      setTimeout(() => this.initMap(), 200);
-      return;
-    }
+    if (!mapContainer) { setTimeout(() => this.initMap(), 200); return; }
 
-    this.map = L.map('map', {
-      center: [38.1, -1.5],
-      zoom: 9,
-      zoomControl: true,
-      attributionControl: false,
-    });
+    this.map = L.map('map', { center: [38.1, -1.5], zoom: 9, zoomControl: true, attributionControl: false });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-    }).addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
 
     if (this.embalses.length > 0) this.renderEmbalseMarkers();
   }
 
-  // MARKERS
+  // ── MARKERS EMBALSES ───────────────────────────────────────
   private renderEmbalseMarkers() {
     this.embalseMarkers.forEach(m => this.map.removeLayer(m));
     this.embalseMarkers.clear();
@@ -141,22 +155,8 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       const size = 36;
 
       const icon = L.divIcon({
-        html: `<div style="
-          width:${size}px;height:${size}px;
-          border-radius:50%;
-          background:${bg};
-          border:2px solid ${color};
-          color:${color};
-          display:flex;align-items:center;justify-content:center;
-          font-family:'JetBrains Mono',monospace;
-          font-size:9px;font-weight:700;
-          backdrop-filter:blur(4px);
-          box-shadow:0 2px 12px rgba(0,0,0,0.6);
-          cursor:pointer;
-        ">${e.porcentaje.toFixed(0)}%</div>`,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-        className: '',
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.6);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
+        iconSize: [size, size], iconAnchor: [size / 2, size / 2], className: '',
       });
 
       const varStr = (e.variacion > 0 ? '+' : '') + e.variacion.toFixed(2);
@@ -166,76 +166,150 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
         .bindPopup(`
           <div style="font-family:'Syne',sans-serif;min-width:180px;padding:4px">
             <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:#e8edf5">${e.nombre}</div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0">
-              <span>Volumen</span><span style="color:#e8edf5">${e.hm3.toFixed(2)} hm³</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0">
-              <span>Porcentaje</span><span style="color:${color};font-weight:600">${e.porcentaje.toFixed(1)}%</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0">
-              <span>Var. 24h</span><span style="color:${varColor}">${varStr} hm³</span>
-            </div>
-            <div style="height:4px;background:#111a27;border-radius:100px;overflow:hidden;margin-top:8px">
-              <div style="height:100%;width:${e.porcentaje}%;background:${color};border-radius:100px"></div>
-            </div>
-          </div>
-        `, { className: 'custom-popup' });
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Volumen</span><span style="color:#e8edf5">${e.hm3.toFixed(2)} hm³</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Porcentaje</span><span style="color:${color};font-weight:600">${e.porcentaje.toFixed(1)}%</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Var. 24h</span><span style="color:${varColor}">${varStr} hm³</span></div>
+            <div style="height:4px;background:#111a27;border-radius:100px;overflow:hidden;margin-top:8px"><div style="height:100%;width:${e.porcentaje}%;background:${color};border-radius:100px"></div></div>
+          </div>`, { className: 'custom-popup' });
 
-      marker.on('click', () => {
-        this.zone.run(() => {
-          this.openDetail(e);
-          this.cdr.detectChanges();
-        });
-      });
+      marker.on('click', () => this.zone.run(() => { this.openDetailEmbalse(e); this.cdr.detectChanges(); }));
 
       if (this.layers.embalses) marker.addTo(this.map);
       this.embalseMarkers.set(e.idEmbalse, marker);
     });
   }
 
-  // ACTIONS
-  openDetail(embalse: Embalse) {
+  // ── MARKERS ESTACIONES ─────────────────────────────────────
+  private renderEstacionMarkers() {
+    // Limpia los anteriores
+    this.estacionMarkersList.forEach(m => this.map.removeLayer(m));
+    this.estacionMarkersList = [];
+
+    this.estaciones.forEach(e => {
+      const lat = parseFloat(e.latitud);
+      const lng = parseFloat(e.longitud);
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const precip = e.precipitacionesDTO?.precipitacion24h ?? 0;
+      const precipColor = this.getPrecipColor(precip);
+
+      const icon = L.divIcon({
+        html: `<div style="
+          width:28px;height:28px;border-radius:6px;
+          background:rgba(0,153,255,0.15);
+          border:1.5px solid ${precipColor};
+          color:${precipColor};
+          display:flex;align-items:center;justify-content:center;
+          font-family:'JetBrains Mono',monospace;
+          font-size:8px;font-weight:700;
+          box-shadow:0 2px 8px rgba(0,0,0,0.5);
+          cursor:pointer;
+        ">${precip > 0 ? precip.toFixed(1) : '—'}</div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14], className: '',
+      });
+
+      const marker = L.marker([lat, lng], { icon })
+        .bindPopup(`
+          <div style="font-family:'Syne',sans-serif;min-width:200px;padding:4px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:#e8edf5">${e.nombre}</div>
+            <div style="font-size:10px;color:#6b7a90;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">${e.provincia} · ${e.altitud} m</div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Precip. 1h</span><span style="color:#e8edf5">${e.precipitacionesDTO?.precipitacion1h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Precip. 6h</span><span style="color:#e8edf5">${e.precipitacionesDTO?.precipitacion6h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Precip. 24h</span><span style="color:${precipColor};font-weight:600">${precip.toFixed(1)} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Acum. año</span><span style="color:#e8edf5">${e.precipitacionesDTO?.precipitacionYtd?.toFixed(1) ?? '—'} mm</span></div>
+          </div>`, { className: 'custom-popup' });
+
+      marker.on('click', () => this.zone.run(() => { this.openDetailEstacion(e); this.cdr.detectChanges(); }));
+
+      if (this.layers.estaciones) marker.addTo(this.map);
+      this.estacionMarkersList.push(marker);
+    });
+  }
+
+  // ── ACTIONS ────────────────────────────────────────────────
+  openDetailEmbalse(embalse: Embalse) {
     this.selectedEmbalse = embalse;
+    this.selectedEstacion = null;
     if (!this.panelOpen) this.panelOpen = true;
+    this.activeTab = 'embalses';
     this.map.flyTo([embalse.latitud, embalse.longitud], 12, { duration: 1.2 });
   }
 
-  closeDetail() {
+  openDetailEstacion(estacion: Estacion) {
+    this.selectedEstacion = estacion;
     this.selectedEmbalse = null;
+    if (!this.panelOpen) this.panelOpen = true;
+    this.activeTab = 'estaciones';
+    const lat = parseFloat(estacion.latitud);
+    const lng = parseFloat(estacion.longitud);
+    if (!isNaN(lat) && !isNaN(lng)) this.map.flyTo([lat, lng], 13, { duration: 1.2 });
   }
 
-  togglePanel() {
-    this.panelOpen = !this.panelOpen;
+  // mantener compatibilidad con el HTML que ya usa openDetail/closeDetail
+  openDetail(embalse: Embalse) { this.openDetailEmbalse(embalse); }
+
+  closeDetail() {
+    this.selectedEmbalse = null;
+    this.selectedEstacion = null;
   }
+
+  get estacionesConLluvia(): number {
+    return this.estaciones.filter(e => (e.precipitacionesDTO?.precipitacion24h ?? 0) > 0).length;
+  }
+
+  togglePanel() { this.panelOpen = !this.panelOpen; }
 
   toggleLayer(layer: 'embalses' | 'estaciones' | 'cauces') {
     this.layers[layer] = !this.layers[layer];
 
     if (layer === 'embalses') {
-      this.embalseMarkers.forEach(m => {
-        if (this.layers.embalses) m.addTo(this.map);
-        else this.map.removeLayer(m);
-      });
+      this.embalseMarkers.forEach(m => this.layers.embalses ? m.addTo(this.map) : this.map.removeLayer(m));
+    }
+
+    if (layer === 'estaciones') {
+      if (this.layers.estaciones) {
+        // Activa capa: carga datos si aún no se han cargado, si ya están los muestra
+        if (!this.estacionesLoaded) {
+          this.loadEstaciones();
+        } else {
+          this.estacionMarkersList.forEach(m => m.addTo(this.map));
+        }
+        // Cambia al tab de estaciones automáticamente
+        this.activeTab = 'estaciones';
+      } else {
+        this.estacionMarkersList.forEach(m => this.map.removeLayer(m));
+      }
     }
   }
 
   setTab(tab: string) {
     this.activeTab = tab;
     this.closeDetail();
+    // Si se activa el tab de estaciones y la capa está on, carga datos
+    if (tab === 'estaciones' && !this.estacionesLoaded) {
+      this.layers.estaciones = true;
+      this.loadEstaciones();
+    }
+    // Sincroniza la búsqueda al cambiar de tab
+    this.searchQuery = '';
+    this.filteredEmbalses = [...this.embalses];
+    this.filteredEstaciones = [...this.estaciones];
   }
 
   onSearch() {
     const q = this.searchQuery.toLowerCase();
-    this.filteredEmbalses = this.embalses.filter(e =>
-      e.nombre.toLowerCase().includes(q)
-    );
+    if (this.activeTab === 'embalses') {
+      this.filteredEmbalses = this.embalses.filter(e => e.nombre.toLowerCase().includes(q));
+    } else {
+      this.filteredEstaciones = this.estaciones.filter(e =>
+        e.nombre.toLowerCase().includes(q) || e.provincia.toLowerCase().includes(q)
+      );
+    }
   }
 
-  goBack() {
-    this.router.navigate(['/dashboard']);
-  }
+  goBack() { this.router.navigate(['/dashboard']); }
 
-  // HELPERS
+  // ── HELPERS ────────────────────────────────────────────────
   getPctColor(pct: number): string {
     if (pct >= 60) return '#00d4aa';
     if (pct >= 40) return '#0099ff';
@@ -248,5 +322,21 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (pct >= 40) return 'rgba(0,153,255,0.15)';
     if (pct >= 25) return 'rgba(255,214,10,0.15)';
     return 'rgba(255,77,109,0.15)';
+  }
+
+  getPrecipColor(mm: number): string {
+    if (mm <= 0)   return '#4a5568';   // sin lluvia — gris
+    if (mm < 2)    return '#a0c4ff';   // traza
+    if (mm < 10)   return '#0099ff';   // lluvia ligera — azul
+    if (mm < 30)   return '#0055cc';   // moderada
+    return '#7b2fff';                   // intensa — violeta
+  }
+
+  getPrecipLabel(mm: number): string {
+    if (mm <= 0)  return 'Sin lluvia';
+    if (mm < 2)   return 'Traza';
+    if (mm < 10)  return 'Ligera';
+    if (mm < 30)  return 'Moderada';
+    return 'Intensa';
   }
 }

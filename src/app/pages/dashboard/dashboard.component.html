@@ -1,4 +1,4 @@
-<ion-content [fullscreen]="true" class="dash-content">
+<ion-content [fullscreen]="true" class="dash-content" [class.light-mode]="lightMode" scrollX="false" scrollY="true">
 
   <!-- NAV -->
   <div class="dash-nav">
@@ -9,17 +9,20 @@
         <div class="nav-date">{{ currentDate }}</div>
       </div>
     </div>
-    <div class="period-selector">
-      <button *ngFor="let p of ['1D','7D','1M','3M','6M','1A']"
-        class="period-btn"
-        [class.active]="activePeriod === p"
-        (click)="setPeriod(p)">{{ p }}</button>
-    </div>
     <div class="nav-right">
       <span class="live-badge"><span class="live-dot"></span>EN VIVO</span>
       <span class="clock">{{ currentTime }}</span>
+
+      <!-- THEME TOGGLE -->
+      <button class="theme-btn" (click)="toggleTheme()" [title]="lightMode ? 'Modo oscuro' : 'Modo claro'">
+        <span class="theme-icon">{{ lightMode ? '🌙' : '☀️' }}</span>
+      </button>
+
+      <!-- MAP BTN — llamativo -->
       <button class="map-btn" (click)="goToMapa()">
-        <ion-icon name="map-outline"></ion-icon> Mapa
+        <ion-icon name="map-outline"></ion-icon>
+        <span>Ver Mapa</span>
+        <span class="map-btn-badge">↗</span>
       </button>
     </div>
   </div>
@@ -73,6 +76,17 @@
       </div>
     </div>
 
+    <!-- PERIOD SELECTOR — entre KPI y gráfica -->
+    <div class="period-bar">
+      <span class="period-bar-label">Período</span>
+      <div class="period-selector">
+        <button *ngFor="let p of ['1D','7D','1M','3M','6M','1A','2A','5A','10A']"
+          class="period-btn"
+          [class.active]="activePeriod === p"
+          (click)="setPeriod(p)">{{ p }}</button>
+      </div>
+    </div>
+
     <!-- CHART -->
     <div class="chart-card">
       <div class="chart-header">
@@ -87,66 +101,48 @@
 
     <!-- RIGHT COL -->
     <div class="right-col">
-
-      <!-- TOP MOVERS TABS -->
       <div class="card movers-card">
         <div class="movers-tabs">
-          <button [class.active]="activeTab==='subidas'" (click)="activeTab='subidas'">
-            ▲ Subidas
-          </button>
-          <button [class.active]="activeTab==='bajadas'" (click)="activeTab='bajadas'">
-            ▼ Bajadas
-          </button>
-          <button [class.active]="activeTab==='todos'" (click)="activeTab='todos'">
-            Todos
-          </button>
+          <button [class.active]="activeTab==='subidas'" (click)="activeTab='subidas'">▲ Subidas</button>
+          <button [class.active]="activeTab==='bajadas'" (click)="activeTab='bajadas'">▼ Bajadas</button>
+          <button [class.active]="activeTab==='todos'" (click)="activeTab='todos'">Todos</button>
         </div>
 
         <ng-container *ngIf="activeTab === 'subidas'">
-          <div class="mover-item" *ngFor="let e of topSubidas; let i = index"
-            (click)="goToEmbalse(e.idEmbalse)">
+          <div class="mover-item" *ngFor="let e of topSubidas; let i = index" (click)="goToEmbalse(e.idEmbalse)">
             <div class="mover-rank">{{ i + 1 }}</div>
             <div class="mover-info">
               <div class="mover-name">{{ e.nombre }}</div>
               <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} hm³ · {{ e.porcentaje | number:'1.1-1' }}%</div>
-              <div class="mini-bar">
-                <div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#00d4aa"></div>
-              </div>
+              <div class="mini-bar"><div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#00d4aa"></div></div>
             </div>
             <div class="mover-delta up">+{{ e.variacion | number:'1.2-2' }}</div>
           </div>
         </ng-container>
 
         <ng-container *ngIf="activeTab === 'bajadas'">
-          <div class="mover-item" *ngFor="let e of topBajadas; let i = index"
-            (click)="goToEmbalse(e.idEmbalse)">
+          <div class="mover-item" *ngFor="let e of topBajadas; let i = index" (click)="goToEmbalse(e.idEmbalse)">
             <div class="mover-rank">{{ i + 1 }}</div>
             <div class="mover-info">
               <div class="mover-name">{{ e.nombre }}</div>
               <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} hm³ · {{ e.porcentaje | number:'1.1-1' }}%</div>
-              <div class="mini-bar">
-                <div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#ff4d6d"></div>
-              </div>
+              <div class="mini-bar"><div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#ff4d6d"></div></div>
             </div>
             <div class="mover-delta down">{{ e.variacion | number:'1.2-2' }}</div>
           </div>
         </ng-container>
 
         <ng-container *ngIf="activeTab === 'todos'">
-          <div class="mover-item" *ngFor="let e of embalses.slice(0,8)"
-            (click)="goToEmbalse(e.idEmbalse)">
+          <div class="mover-item" *ngFor="let e of embalses.slice(0,8)" (click)="goToEmbalse(e.idEmbalse)">
             <div class="list-indicator" [style.background]="getPctColor(e.porcentaje)"></div>
             <div class="mover-info">
               <div class="mover-name">{{ e.nombre }}</div>
               <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} / {{ e.capacidadMaximaEmbalse }} hm³</div>
             </div>
-            <div class="mover-delta" [style.color]="getPctColor(e.porcentaje)">
-              {{ e.porcentaje | number:'1.1-1' }}%
-            </div>
+            <div class="mover-delta" [style.color]="getPctColor(e.porcentaje)">{{ e.porcentaje | number:'1.1-1' }}%</div>
           </div>
         </ng-container>
       </div>
-
     </div>
 
     <!-- BOTTOM STATS -->
