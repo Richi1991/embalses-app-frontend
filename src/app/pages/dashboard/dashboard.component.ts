@@ -37,6 +37,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   topSubidas: TopMovimiento[] = [];
   topBajadas: TopMovimiento[] = [];
   historico: HistoricoCuenca[] = [];
+  historicoDiario: HistoricoCuenca[] = [];
   loading = true;
   loadError = false;
   loadingMsg = 'Conectando con el servidor...';
@@ -97,16 +98,19 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       embalses: this.embalseService.getEmbalsesLastValueAndPosition(),
       topSubidas: this.embalseService.getTopMovimientos('1day'),
       historico: this.embalseService.getHistoricoCuencaSegura(),
+      historicoDiario: this.embalseService.getHistoricoCuencaSeguraDiaro(),
     }).subscribe({
-      next: ({ embalses, topSubidas, historico }) => {
+      next: ({ embalses, topSubidas, historico, historicoDiario }) => {
         this.embalses = embalses.sort((a, b) => b.porcentaje - a.porcentaje);
         this.topSubidas = topSubidas.filter(e => e.variacion >= 0).sort((a, b) => b.variacion - a.variacion).slice(0, 5);
         this.topBajadas = topSubidas.filter(e => e.variacion < 0).sort((a, b) => a.variacion - b.variacion).slice(0, 5);
         this.historico = historico;
+        this.historicoDiario = historicoDiario;
         this.loading = false;
         this.calcKpis();
         this.updateChart();
         this.cdr.detectChanges();
+        setTimeout(() => this.updateChart(), 0);
         this.splashService.markReady();
       },
       error: () => {
@@ -117,6 +121,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
+
 
   retry() {
     this.loadingMsg = 'Reintentando...';
@@ -138,8 +143,23 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   // Colores del chart según tema activo
   private chartColors() {
     return this.lightMode
-      ? { grid: 'rgba(0,0,0,0.05)', tick: '#8896aa', border: 'rgba(0,0,0,0.08)', tooltipBg: 'rgba(255,255,255,0.97)', tooltipTitle: '#8896aa', tooltipBody: '#0d1420' }
-      : { grid: 'rgba(255,255,255,0.03)', tick: '#4a5568', border: 'rgba(255,255,255,0.06)', tooltipBg: 'rgba(13,20,32,0.95)', tooltipTitle: '#6b7a90', tooltipBody: '#e8edf5' };
+      ? { grid: 'rgba(0,0,0,0.05)', tick: '#4a90d9', border: 'rgba(0,0,0,0.08)', tooltipBg: 'rgba(255,255,255,0.97)', tooltipTitle: '#8896aa', tooltipBody: '#0d1420' }
+      : { grid: 'rgba(255,255,255,0.03)', tick: '#c8d6e8', border: 'rgba(255,255,255,0.06)', tooltipBg: 'rgba(13,20,32,0.95)', tooltipTitle: '#6b7a90', tooltipBody: '#e8edf5' };
+  }
+
+  private formatFecha(fecha: string, periodo: string): string {
+    const d = new Date(fecha);
+    const periodosDias = ['1D', '7D'];
+    const periodosMeses = ['1M', '3M', '6M'];
+    // periodos largos: 1A, 2A, 5A, 10A → mostrar año
+
+    if (periodosDias.includes(periodo)) {
+      return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    } else if (periodosMeses.includes(periodo)) {
+      return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    } else {
+      return d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+    }
   }
 
   private initChart() {
@@ -154,11 +174,21 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     this.chart = new (window as any).Chart(ctx, {
       type: 'line',
       data: {
-        labels: [], datasets: [{
-          data: [], borderColor: '#00d4aa', borderWidth: 2,
-          fill: true, backgroundColor: gradient, tension: 0.4,
-          pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#00d4aa',
-        }]
+        labels: [],
+        datasets: [
+          {
+            data: [], borderColor: '#00d4aa', borderWidth: 2,
+            fill: true, backgroundColor: gradient, tension: 0.4,
+            pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#00d4aa',
+            yAxisID: 'yVol'
+          },
+          {
+            data: [], borderColor: 'transparent',
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            yAxisID: 'yPct'
+          }
+        ]
       },
       options: {
         responsive: true,
@@ -171,12 +201,19 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
             titleFont: { family: 'JetBrains Mono', size: 10 },
             bodyFont: { family: 'JetBrains Mono', size: 13 },
             padding: 12,
-            callbacks: { label: (ctx: any) => this.chartMode === 'VOL' ? ` ${ctx.parsed.y.toFixed(2)} hm³` : ` ${ctx.parsed.y.toFixed(2)}%` }
+            callbacks: {
+              label: (ctx: any) => {
+                if (ctx.datasetIndex === 0) return ` ${ctx.parsed.y.toFixed(2)} hm³`;
+                if (ctx.datasetIndex === 1) return ` ${ctx.parsed.y.toFixed(2)} %`;
+                return '';
+              }
+            }
           }
         },
         scales: {
           x: { grid: { color: c.grid }, border: { color: c.border }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 8, maxRotation: 0 } },
-          y: { position: 'right', grid: { color: c.grid }, border: { color: 'transparent' }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, callback: (v: number) => this.chartMode === 'VOL' ? v.toFixed(0) + ' hm³' : v.toFixed(1) + '%' } }
+          yVol: { position: 'right', grid: { color: c.grid }, border: { color: 'transparent' }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, callback: (v: number) => v.toFixed(0) + ' hm³' } },
+          yPct: { position: 'left', grid: { display: false }, border: { color: 'transparent' }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, callback: (v: number) => v.toFixed(1) + '%' } }
         }
       }
     });
@@ -189,10 +226,20 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private updateChart() {
-    if (!this.chart || !this.historico.length) return;
+    if (!this.historico.length) return;
+
+    // Si el chart no existe aún, intentar inicializarlo
+    if (!this.chart) {
+      if (this.chartCanvas) {
+        this.initChart();
+      }
+      return;
+    }
+
     const filtered = this.filterHistorico();
-    this.chart.data.labels = filtered.map(h => new Date(h.fechaRegistro).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }));
-    this.chart.data.datasets[0].data = filtered.map(h => this.chartMode === 'VOL' ? h.volumenTotal : h.porcentaje);
+    this.chart.data.labels = filtered.map(h => this.formatFecha(h.fechaRegistro as any, this.activePeriod));
+    this.chart.data.datasets[0].data = filtered.map(h => h.volumenTotal);  // siempre volumen
+    this.chart.data.datasets[1].data = filtered.map(h => h.porcentajeTotal);
     this.chart.update('active');
   }
 
@@ -200,11 +247,20 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     const now = new Date();
     const days: Record<string, number> = { '1D': 1, '7D': 7, '1M': 30, '3M': 90, '6M': 180, '1A': 365, '2A': 730, '5A': 1825, '10A': 3650 };
     const from = new Date(now.getTime() - (days[this.activePeriod] || 90) * 86400000);
-    return this.historico.filter(h => new Date(h.fechaRegistro) >= from);
+    if (this.activePeriod === '1D') {
+      return this.historicoDiario.filter(h => new Date(h.fechaRegistro) >= from);
+    } else {
+      return this.historico.filter(h => new Date(h.fechaRegistro) >= from);
+    }
   }
 
   setPeriod(period: string) { this.activePeriod = period; this.updateChart(); }
-  setChartMode(mode: 'VOL' | 'PCT') { this.chartMode = mode; this.updateChart(); }
+  setChartMode(mode: 'VOL' | 'PCT') {
+    this.chartMode = mode;
+    setTimeout(() => {
+      this.updateChart();
+    }, 100);
+  }
 
   getPctColor(pct: number): string {
     if (pct >= 60) return '#0099ff';

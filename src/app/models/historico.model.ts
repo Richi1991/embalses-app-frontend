@@ -1,5 +1,5 @@
 export interface HistoricoCuenca {
   volumenTotal: number;
-  porcentaje: number;
+  porcentajeTotal: number;
   fechaRegistro: Date;
 }

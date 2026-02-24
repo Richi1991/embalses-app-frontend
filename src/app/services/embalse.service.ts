@@ -19,7 +19,7 @@ export interface Embalse {
 
 export interface HistoricoCuenca {
   volumenTotal: number;
-  porcentaje: number;
+  porcentajeTotal: number;
   fechaRegistro: Date;
 
 }
@@ -57,7 +57,7 @@ export class EmbalseService {
   }
 
     // Obtiene datos de la tabla historico_cuenca_diario (Últimos 7 días detallados)
-  getHistoricoCuencaSeguraDiaroList(): Observable<HistoricoCuenca[]> {
+  getHistoricoCuencaSeguraDiaro(): Observable<HistoricoCuenca[]> {
     if (this.cacheHistoricoDiario) return of(this.cacheHistoricoDiario);
 
     return this.http.get<HistoricoCuenca[]>(this.apiUrlHistoricoCuencaDiario).pipe(

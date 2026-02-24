@@ -104,10 +104,6 @@
     <div class="chart-card">
       <div class="chart-header">
         <span class="chart-title">Evolución Histórica</span>
-        <div class="chart-toggle">
-          <button [class.active]="chartMode==='VOL'" (click)="setChartMode('VOL')">VOL</button>
-          <button [class.active]="chartMode==='PCT'" (click)="setChartMode('PCT')">PCT</button>
-        </div>
       </div>
       <canvas #chartCanvas height="160"></canvas>
     </div>
