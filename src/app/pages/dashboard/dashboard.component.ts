@@ -10,7 +10,10 @@ import { Embalse, TopMovimiento } from '../../models/embalse.model';
 import { HistoricoCuenca } from '../../models/historico.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonContent,
+  IonIcon
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { mapOutline, arrowBackOutline } from 'ionicons/icons';
 
@@ -21,7 +24,7 @@ declare var Chart: any;
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule]
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, ]
 })
 export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
