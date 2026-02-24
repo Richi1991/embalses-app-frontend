@@ -1,10 +1,10 @@
 import {
   Component, OnInit, OnDestroy,
   AfterViewInit, ViewChild, ElementRef,
-  NgZone, ChangeDetectorRef
+  NgZone, ChangeDetectorRef, HostBinding
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { interval, Subscription, forkJoin } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { EmbalseService, Embalse } from '../../services/embalse.service';
 import { EstacionesService, Estacion } from '../../services/estaciones.service';
 import { CommonModule } from '@angular/common';
@@ -25,7 +25,9 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
-  lightMode = false;
+  /** Applies .light-mode CSS class to the :host element */
+  @HostBinding('class.light-mode') lightMode = false;
+
   private tileLayer!: L.TileLayer;
 
   // Map
@@ -110,13 +112,12 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadEstaciones() {
-    if (this.estacionesLoaded) return; // carga lazy: solo una vez
+    if (this.estacionesLoaded) return;
     this.loadingEstaciones = true;
     this.cdr.detectChanges();
 
     this.estacionesService.getEstacionesAndPrecipitacionesUltimas24h().subscribe({
       next: (data) => {
-        // Filtramos las que tienen coordenadas válidas
         this.estaciones = data.filter(e => e.latitud && e.longitud);
         this.filteredEstaciones = [...this.estaciones];
         this.estacionesLoaded = true;
@@ -145,16 +146,17 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.map = L.map('map', { center: [38.1, -1.5], zoom: 9, zoomControl: true, attributionControl: false });
 
-    // dark_matter: más contraste y detalle que dark_all, fondo menos plano
-    this.tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(this.map);
+    // dark_nolabels: sin cuadrícula de líneas blancas, fondo muy oscuro con detalle
+    const darkTile  = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+    const lightTile = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
-    // Capas simples sin clustering
+    this.tileLayer = L.tileLayer(this.lightMode ? lightTile : darkTile, { maxZoom: 18 }).addTo(this.map);
+
     this.embalseLayer = L.layerGroup();
     this.estacionLayer = L.layerGroup();
 
     if (this.layers.embalses) this.map.addLayer(this.embalseLayer);
 
-    // Re-escalar markers al cambiar el nivel de zoom
     this.map.on('zoomend', () => {
       if (this.embalses.length > 0) this.renderEmbalseMarkers();
       if (this.estacionesLoaded && this.layers.estaciones) this.renderEstacionMarkers();
@@ -163,7 +165,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.embalses.length > 0) this.renderEmbalseMarkers();
   }
 
-  /** Tamaño de marker escalado según zoom actual (base en zoom 9) */
+  /** Marker size scaled by zoom (base at zoom 9) */
   private getMarkerSize(baseSize: number): number {
     const zoom = this.map ? this.map.getZoom() : 9;
     const scale = Math.pow(1.18, zoom - 9);
@@ -172,7 +174,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── MARKERS EMBALSES ───────────────────────────────────────
   private renderEmbalseMarkers() {
-    // Limpiar del cluster, no del mapa directamente
     if (this.embalseLayer) this.embalseLayer.clearLayers();
     this.embalseMarkers.clear();
 
@@ -182,21 +183,26 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       const size = this.getMarkerSize(36);
 
       const icon = L.divIcon({
-        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:${Math.max(7,Math.round(size*0.25))}px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.6);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:${Math.max(7,Math.round(size*0.25))}px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.45);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
         iconSize: [size, size], iconAnchor: [size / 2, size / 2], className: '',
       });
 
       const varStr = (e.variacion > 0 ? '+' : '') + e.variacion.toFixed(2);
       const varColor = e.variacion >= 0 ? '#00d4aa' : '#ff4d6d';
 
+      // Popup adapts to current theme
+      const popupText = this.lightMode ? '#1a2535' : '#e8edf5';
+      const popupSub  = this.lightMode ? '#6b7a90' : '#6b7a90';
+      const popupBarBg = this.lightMode ? '#dde3ee' : '#111a27';
+
       const marker = L.marker([e.latitud, e.longitud], { icon })
         .bindPopup(`
         <div style="font-family:'Syne',sans-serif;min-width:180px;padding:4px">
-          <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:#e8edf5">${e.nombre}</div>
-          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Volumen</span><span style="color:#e8edf5">${e.hm3.toFixed(2)} hm³</span></div>
-          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Porcentaje</span><span style="color:${color};font-weight:600">${e.porcentaje.toFixed(1)}%</span></div>
-          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Var. 24h</span><span style="color:${varColor}">${varStr} hm³</span></div>
-          <div style="height:4px;background:#111a27;border-radius:100px;overflow:hidden;margin-top:8px"><div style="height:100%;width:${e.porcentaje}%;background:${color};border-radius:100px"></div></div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:${popupText}">${e.nombre}</div>
+          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Volumen</span><span style="color:${popupText}">${e.hm3.toFixed(2)} hm³</span></div>
+          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Porcentaje</span><span style="color:${color};font-weight:600">${e.porcentaje.toFixed(1)}%</span></div>
+          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Var. 24h</span><span style="color:${varColor}">${varStr} hm³</span></div>
+          <div style="height:4px;background:${popupBarBg};border-radius:100px;overflow:hidden;margin-top:8px"><div style="height:100%;width:${e.porcentaje}%;background:${color};border-radius:100px"></div></div>
         </div>`, { className: 'custom-popup' });
 
       marker.on('click', () => this.zone.run(() => { this.openDetailEmbalse(e); this.cdr.detectChanges(); }));
@@ -229,21 +235,24 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
                 display:flex;align-items:center;justify-content:center;
                 font-family:'JetBrains Mono',monospace;
                 font-size:${Math.max(6, Math.round(sz * 0.38))}px;font-weight:700;
-                box-shadow:0 1px 4px rgba(0,0,0,0.4);
+                box-shadow:0 1px 4px rgba(0,0,0,0.35);
                 cursor:pointer;
               ">${precip > 0 ? precip.toFixed(0) : '—'}</div>`,
         iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2], className: '',
       });
 
+      const popupText = this.lightMode ? '#1a2535' : '#e8edf5';
+      const popupSub  = '#6b7a90';
+
       const marker = L.marker([lat, lng], { icon })
         .bindPopup(`
           <div style="font-family:'Syne',sans-serif;min-width:200px;padding:4px">
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:#e8edf5">${e.nombre}</div>
-            <div style="font-size:10px;color:#6b7a90;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">${e.provincia} · ${e.altitud} m</div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Precip. 1h</span><span style="color:#e8edf5">${e.precipitacionesDTO?.precipitacion1h?.toFixed(1) ?? '—'} mm</span></div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Precip. 6h</span><span style="color:#e8edf5">${e.precipitacionesDTO?.precipitacion6h?.toFixed(1) ?? '—'} mm</span></div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Precip. 24h</span><span style="color:${precipColor};font-weight:600">${precip.toFixed(1)} mm</span></div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Acum. año</span><span style="color:#e8edf5">${e.precipitacionesDTO?.precipitacionYtd?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:${popupText}">${e.nombre}</div>
+            <div style="font-size:10px;color:${popupSub};margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">${e.provincia} · ${e.altitud} m</div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 1h</span><span style="color:${popupText}">${e.precipitacionesDTO?.precipitacion1h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 6h</span><span style="color:${popupText}">${e.precipitacionesDTO?.precipitacion6h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 24h</span><span style="color:${precipColor};font-weight:600">${precip.toFixed(1)} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Acum. año</span><span style="color:${popupText}">${e.precipitacionesDTO?.precipitacionYtd?.toFixed(1) ?? '—'} mm</span></div>
           </div>`, { className: 'custom-popup' });
 
       marker.on('click', () => this.zone.run(() => { this.openDetailEstacion(e); this.cdr.detectChanges(); }));
@@ -251,6 +260,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       this.estacionLayer.addLayer(marker);
       this.estacionMarkersList.push(marker);
     });
+
     if (this.layers.estaciones && !this.map.hasLayer(this.estacionLayer)) {
       this.map.addLayer(this.estacionLayer);
     }
@@ -275,7 +285,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!isNaN(lat) && !isNaN(lng)) this.map.flyTo([lat, lng], 13, { duration: 1.2 });
   }
 
-  // mantener compatibilidad con el HTML que ya usa openDetail/closeDetail
   openDetail(embalse: Embalse) { this.openDetailEmbalse(embalse); }
 
   closeDetail() {
@@ -316,22 +325,25 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lightMode = !this.lightMode;
     localStorage.setItem('mapa-theme', this.lightMode ? 'light' : 'dark');
 
-    const tileUrl = this.lightMode
-      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png';
+    // Swap tile layer
+    const darkTile  = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+    const lightTile = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    this.tileLayer.setUrl(this.lightMode ? lightTile : darkTile);
 
-    this.tileLayer.setUrl(tileUrl);
+    // Re-render markers so popup colors match the new theme
+    if (this.embalses.length > 0) this.renderEmbalseMarkers();
+    if (this.estacionesLoaded && this.layers.estaciones) this.renderEstacionMarkers();
+
+    this.cdr.detectChanges();
   }
 
   setTab(tab: string) {
     this.activeTab = tab;
     this.closeDetail();
-    // Si se activa el tab de estaciones y la capa está on, carga datos
     if (tab === 'estaciones' && !this.estacionesLoaded) {
       this.layers.estaciones = true;
       this.loadEstaciones();
     }
-    // Sincroniza la búsqueda al cambiar de tab
     this.searchQuery = '';
     this.filteredEmbalses = [...this.embalses];
     this.filteredEstaciones = [...this.estaciones];
@@ -359,23 +371,23 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getPctBg(pct: number): string {
-    if (pct >= 60) return 'rgba(0,212,170,0.15)';
-    if (pct >= 40) return 'rgba(0,153,255,0.15)';
-    if (pct >= 25) return 'rgba(255,214,10,0.15)';
-    return 'rgba(255,77,109,0.15)';
+    if (pct >= 60) return 'rgba(0,153,255,0.18)';
+    if (pct >= 40) return 'rgba(0,212,170,0.18)';
+    if (pct >= 25) return 'rgba(255,214,10,0.18)';
+    return 'rgba(255,77,109,0.18)';
   }
 
   getPrecipColor(mm: number): string {
-    if (mm <= 0) return '#4a5568';   // sin lluvia — gris
-    if (mm < 2) return '#a0c4ff';   // traza
-    if (mm < 10) return '#0099ff';   // lluvia ligera — azul
-    if (mm < 30) return '#0055cc';   // moderada
-    return '#7b2fff';                   // intensa — violeta
+    if (mm <= 0) return '#4a5568';
+    if (mm < 2)  return '#a0c4ff';
+    if (mm < 10) return '#0099ff';
+    if (mm < 30) return '#0055cc';
+    return '#7b2fff';
   }
 
   getPrecipLabel(mm: number): string {
     if (mm <= 0) return 'Sin lluvia';
-    if (mm < 2) return 'Traza';
+    if (mm < 2)  return 'Traza';
     if (mm < 10) return 'Ligera';
     if (mm < 30) return 'Moderada';
     return 'Intensa';
