@@ -16,6 +16,8 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { mapOutline, arrowBackOutline } from 'ionicons/icons';
+import { SplashService } from '../../services/splash.service';
+
 
 declare var Chart: any;
 
@@ -24,7 +26,7 @@ declare var Chart: any;
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, ]
+  imports: [CommonModule, FormsModule, IonContent, IonIcon,]
 })
 export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
@@ -35,6 +37,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   topSubidas: TopMovimiento[] = [];
   topBajadas: TopMovimiento[] = [];
   historico: HistoricoCuenca[] = [];
+  loading = true;
+  loadError = false;
+  loadingMsg = 'Conectando con el servidor...';
 
   // KPIs
   totalVol = 0; totalPct = 0; totalCap = 0;
@@ -54,7 +59,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private embalseService: EmbalseService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private splashService: SplashService
   ) {
     addIcons({ mapOutline, arrowBackOutline });
     // Recuperar preferencia guardada
@@ -63,7 +69,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() { this.startClock(); this.loadData(); }
 
-  ngAfterViewInit() { setTimeout(() => this.initChart(), 300); }
+  ngAfterViewInit() { this.initChart() }
 
   ngOnDestroy() { this.clockSub?.unsubscribe(); if (this.chart) this.chart.destroy(); }
 
@@ -91,15 +97,32 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       embalses: this.embalseService.getEmbalsesLastValueAndPosition(),
       topSubidas: this.embalseService.getTopMovimientos('1day'),
       historico: this.embalseService.getHistoricoCuencaSegura(),
-    }).subscribe(({ embalses, topSubidas, historico }) => {
-      this.embalses = embalses.sort((a, b) => b.porcentaje - a.porcentaje);
-      this.topSubidas = topSubidas.filter(e => e.variacion >= 0).sort((a, b) => b.variacion - a.variacion).slice(0, 5);
-      this.topBajadas = topSubidas.filter(e => e.variacion < 0).sort((a, b) => a.variacion - b.variacion).slice(0, 5);
-      this.historico = historico;
-      this.calcKpis();
-      this.updateChart();
-      this.cdr.detectChanges();
+    }).subscribe({
+      next: ({ embalses, topSubidas, historico }) => {
+        this.embalses = embalses.sort((a, b) => b.porcentaje - a.porcentaje);
+        this.topSubidas = topSubidas.filter(e => e.variacion >= 0).sort((a, b) => b.variacion - a.variacion).slice(0, 5);
+        this.topBajadas = topSubidas.filter(e => e.variacion < 0).sort((a, b) => a.variacion - b.variacion).slice(0, 5);
+        this.historico = historico;
+        this.loading = false;
+        this.calcKpis();
+        this.updateChart();
+        this.cdr.detectChanges();
+        this.splashService.markReady();
+      },
+      error: () => {
+        this.loading = false;
+        this.loadError = true;
+        this.cdr.detectChanges();
+        this.splashService.markReady();
+      }
     });
+  }
+
+  retry() {
+    this.loadingMsg = 'Reintentando...';
+    this.loading = true;
+    this.loadError = false;
+    this.loadData();
   }
 
   private calcKpis() {

@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true" class="dash-content" [class.light-mode]="lightMode" scrollX="false" scrollY="true">
 
-  <!-- NAV -->
+  <!-- NAV — siempre visible -->
   <div class="dash-nav">
     <div class="nav-left">
       <div class="nav-dot"></div>
@@ -13,12 +13,10 @@
       <span class="live-badge"><span class="live-dot"></span>EN VIVO</span>
       <span class="clock">{{ currentTime }}</span>
 
-      <!-- THEME TOGGLE -->
       <button class="theme-btn" (click)="toggleTheme()" [title]="lightMode ? 'Modo oscuro' : 'Modo claro'">
         <span class="theme-icon">{{ lightMode ? '🌙' : '☀️' }}</span>
       </button>
 
-      <!-- MAP BTN — llamativo -->
       <button class="map-btn" (click)="goToMapa()">
         <ion-icon name="map-outline"></ion-icon>
         <span>Ver Mapa</span>
@@ -27,7 +25,22 @@
     </div>
   </div>
 
-  <div class="dash-body">
+  <!-- ESTADO DE CARGA -->
+  <div class="dash-loading" *ngIf="loading">
+    <div class="dash-spinner"></div>
+    <div class="dash-loading-msg">{{ loadingMsg }}</div>
+  </div>
+
+  <!-- ESTADO DE ERROR -->
+  <div class="dash-error" *ngIf="!loading && loadError">
+    <div class="dash-error-icon">⚠</div>
+    <div class="dash-error-title">No se pudo conectar</div>
+    <div class="dash-error-sub">El servidor puede estar iniciándose. Inténtalo de nuevo.</div>
+    <button class="dash-retry-btn" (click)="retry()">Reintentar</button>
+  </div>
+
+  <!-- CONTENIDO — solo cuando hay datos -->
+  <div class="dash-body" *ngIf="!loading && !loadError">
 
     <!-- HERO KPI -->
     <div class="hero-kpi">
@@ -76,7 +89,7 @@
       </div>
     </div>
 
-    <!-- PERIOD SELECTOR — entre KPI y gráfica -->
+    <!-- PERIOD SELECTOR -->
     <div class="period-bar">
       <span class="period-bar-label">Período</span>
       <div class="period-selector">
