@@ -1,0 +1,143 @@
+.cookie-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99998;
+  width: calc(100% - 32px);
+  max-width: 680px;
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cookie-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(13, 20, 32, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 14px 18px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 212, 170, 0.08);
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.cookie-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cookie-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.cookie-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cookie-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e8edf5;
+  letter-spacing: 0.3px;
+}
+
+.cookie-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #6b7a90;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 520px) {
+    white-space: normal;
+  }
+}
+
+.cookie-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+
+  @media (max-width: 520px) {
+    width: 100%;
+  }
+}
+
+.btn-reject {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  padding: 8px 16px;
+  color: #6b7a90;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #e8edf5;
+  }
+
+  @media (max-width: 520px) {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+.btn-accept {
+  background: #00d4aa;
+  border: none;
+  border-radius: 9px;
+  padding: 8px 20px;
+  color: #080c12;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 0 16px rgba(0, 212, 170, 0.25);
+
+  &:hover {
+    background: #00f0c3;
+    box-shadow: 0 0 24px rgba(0, 212, 170, 0.4);
+  }
+
+  @media (max-width: 520px) {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}

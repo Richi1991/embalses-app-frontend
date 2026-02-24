@@ -1,0 +1,18 @@
+<div class="cookie-banner" *ngIf="visible">
+  <div class="cookie-inner">
+
+    <div class="cookie-left">
+      <span class="cookie-icon">🍪</span>
+      <div class="cookie-text">
+        <span class="cookie-title">Cookies de analítica</span>
+        <span class="cookie-sub">Usamos Firebase Analytics para mejorar la app. Sin datos personales.</span>
+      </div>
+    </div>
+
+    <div class="cookie-actions">
+      <button class="btn-reject" (click)="reject()">Rechazar</button>
+      <button class="btn-accept" (click)="accept()">Aceptar</button>
+    </div>
+
+  </div>
+</div>
