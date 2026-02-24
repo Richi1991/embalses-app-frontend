@@ -384,7 +384,7 @@ ion-content.dash-content {
   border-radius: 20px;
   padding: 28px 32px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 
   &::before {
     content: '';
@@ -597,7 +597,11 @@ ion-content.dash-content {
 
 .movers-card {
   padding: 0;
-  overflow: hidden;
+  overflow: visible; // ← cambia hidden por visible
+  border-radius: 16px; // mantén el border-radius explícito
+  .mover-item:last-child {
+    border-radius: 0 0 16px 16px;
+  }
 }
 
 .movers-tabs {
