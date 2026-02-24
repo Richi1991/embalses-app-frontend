@@ -6,6 +6,7 @@ import {
 import { Router } from '@angular/router';
 import { interval, Subscription, forkJoin } from 'rxjs';
 import * as L from 'leaflet';
+(window as any).L = L;
 import { EmbalseService, Embalse } from '../../services/embalse.service';
 import { EstacionesService, Estacion } from '../../services/estaciones.service';
 import { CommonModule } from '@angular/common';
