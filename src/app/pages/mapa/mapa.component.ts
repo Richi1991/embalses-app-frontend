@@ -32,8 +32,8 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   private map!: L.Map;
   private embalseMarkers: Map<number, L.Marker> = new Map();
   private estacionMarkersList: L.Marker[] = [];
-  private embalseCluster!: any;
-  private estacionCluster!: any;
+  private embalseLayer!: L.LayerGroup;
+  private estacionLayer!: L.LayerGroup;
 
   // State — embalses
   embalses: Embalse[] = [];
@@ -77,8 +77,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
-    (window as any).L = L;
-    await import('leaflet.markercluster');
     setTimeout(() => this.initMap(), 400);
   }
 
@@ -146,50 +144,45 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!mapContainer) { setTimeout(() => this.initMap(), 200); return; }
 
     this.map = L.map('map', { center: [38.1, -1.5], zoom: 9, zoomControl: true, attributionControl: false });
-    this.tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(this.map);
 
-    // 1. Crear clusters primero
-    this.embalseCluster = (window as any).L.markerClusterGroup({
-      maxClusterRadius: 50,
-      iconCreateFunction: (cluster: any) => {
-        const count = cluster.getChildCount();
-        return L.divIcon({
-          html: `<div style="width:42px;height:42px;border-radius:50%;background:rgba(0,212,170,0.2);border:2px solid #00d4aa;color:#00d4aa;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;box-shadow:0 2px 12px rgba(0,0,0,0.6)">${count}</div>`,
-          iconSize: [42, 42], iconAnchor: [21, 21], className: ''
-        });
-      }
+    // dark_matter: más contraste y detalle que dark_all, fondo menos plano
+    this.tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(this.map);
+
+    // Capas simples sin clustering
+    this.embalseLayer = L.layerGroup();
+    this.estacionLayer = L.layerGroup();
+
+    if (this.layers.embalses) this.map.addLayer(this.embalseLayer);
+
+    // Re-escalar markers al cambiar el nivel de zoom
+    this.map.on('zoomend', () => {
+      if (this.embalses.length > 0) this.renderEmbalseMarkers();
+      if (this.estacionesLoaded && this.layers.estaciones) this.renderEstacionMarkers();
     });
 
-    this.estacionCluster = (window as any).L.markerClusterGroup({
-      maxClusterRadius: 30,
-      iconCreateFunction: (cluster: any) => {
-        const count = cluster.getChildCount();
-        return L.divIcon({
-          html: `<div style="width:22px;height:22px;border-radius:4px;background:rgba(0,153,255,0.2);border:1.5px solid #0099ff;color:#0099ff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5)">${count}</div>`,
-          iconSize: [22, 22], iconAnchor: [11, 11], className: ''
-        });
-      }
-    });
-
-    if (this.layers.embalses) this.map.addLayer(this.embalseCluster);
-
-    // 2. Renderizar marcadores después
     if (this.embalses.length > 0) this.renderEmbalseMarkers();
+  }
+
+  /** Tamaño de marker escalado según zoom actual (base en zoom 9) */
+  private getMarkerSize(baseSize: number): number {
+    const zoom = this.map ? this.map.getZoom() : 9;
+    const scale = Math.pow(1.18, zoom - 9);
+    return Math.round(Math.max(baseSize * 0.4, Math.min(baseSize * 2.8, baseSize * scale)));
   }
 
   // ── MARKERS EMBALSES ───────────────────────────────────────
   private renderEmbalseMarkers() {
     // Limpiar del cluster, no del mapa directamente
-    if (this.embalseCluster) this.embalseCluster.clearLayers();
+    if (this.embalseLayer) this.embalseLayer.clearLayers();
     this.embalseMarkers.clear();
 
     this.embalses.forEach(e => {
       const color = this.getPctColor(e.porcentaje);
       const bg = this.getPctBg(e.porcentaje);
-      const size = 36;
+      const size = this.getMarkerSize(36);
 
       const icon = L.divIcon({
-        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.6);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:${Math.max(7,Math.round(size*0.25))}px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.6);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
         iconSize: [size, size], iconAnchor: [size / 2, size / 2], className: '',
       });
 
@@ -208,14 +201,14 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       marker.on('click', () => this.zone.run(() => { this.openDetailEmbalse(e); this.cdr.detectChanges(); }));
 
-      this.embalseCluster.addLayer(marker);
+      this.embalseLayer.addLayer(marker);
       this.embalseMarkers.set(e.idEmbalse, marker);
     });
   }
 
   // ── MARKERS ESTACIONES ─────────────────────────────────────
   private renderEstacionMarkers() {
-    if (this.estacionCluster) this.estacionCluster.clearLayers();
+    if (this.estacionLayer) this.estacionLayer.clearLayers();
     this.estacionMarkersList = [];
 
     this.estaciones.forEach(e => {
@@ -226,19 +219,20 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       const precip = e.precipitacionesDTO?.precipitacion24h ?? 0;
       const precipColor = this.getPrecipColor(precip);
 
+      const sz = this.getMarkerSize(18);
       const icon = L.divIcon({
         html: `<div style="
-                width:18px;height:18px;border-radius:3px;
+                width:${sz}px;height:${sz}px;border-radius:3px;
                 background:rgba(0,153,255,0.15);
                 border:1px solid ${precipColor};
                 color:${precipColor};
                 display:flex;align-items:center;justify-content:center;
                 font-family:'JetBrains Mono',monospace;
-                font-size:7px;font-weight:700;
+                font-size:${Math.max(6, Math.round(sz * 0.38))}px;font-weight:700;
                 box-shadow:0 1px 4px rgba(0,0,0,0.4);
                 cursor:pointer;
               ">${precip > 0 ? precip.toFixed(0) : '—'}</div>`,
-        iconSize: [18, 18], iconAnchor: [9, 9], className: '',
+        iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2], className: '',
       });
 
       const marker = L.marker([lat, lng], { icon })
@@ -254,11 +248,11 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       marker.on('click', () => this.zone.run(() => { this.openDetailEstacion(e); this.cdr.detectChanges(); }));
 
-      this.estacionCluster.addLayer(marker);
+      this.estacionLayer.addLayer(marker);
       this.estacionMarkersList.push(marker);
     });
-    if (this.layers.estaciones && !this.map.hasLayer(this.estacionCluster)) {
-      this.map.addLayer(this.estacionCluster);
+    if (this.layers.estaciones && !this.map.hasLayer(this.estacionLayer)) {
+      this.map.addLayer(this.estacionLayer);
     }
   }
 
@@ -300,8 +294,8 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (layer === 'embalses') {
       this.layers.embalses
-        ? this.map.addLayer(this.embalseCluster)
-        : this.map.removeLayer(this.embalseCluster);
+        ? this.map.addLayer(this.embalseLayer)
+        : this.map.removeLayer(this.embalseLayer);
     }
 
     if (layer === 'estaciones') {
@@ -309,11 +303,11 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.estacionesLoaded) {
           this.loadEstaciones();
         } else {
-          this.map.addLayer(this.estacionCluster);
+          this.map.addLayer(this.estacionLayer);
         }
         this.activeTab = 'estaciones';
       } else {
-        this.map.removeLayer(this.estacionCluster);
+        this.map.removeLayer(this.estacionLayer);
       }
     }
   }
@@ -324,7 +318,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const tileUrl = this.lightMode
       ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+      : 'https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png';
 
     this.tileLayer.setUrl(tileUrl);
   }

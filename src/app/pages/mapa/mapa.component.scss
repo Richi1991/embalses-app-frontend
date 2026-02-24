@@ -1,5 +1,3 @@
-@import 'leaflet.markercluster/dist/MarkerCluster.css';
-@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 :host {
   --panel-w: 340px;
@@ -9,7 +7,7 @@
 }
 
 ion-content.mapa-content {
-  --background: #0e1520;
+  --background: #000000;
   --padding-top: 0;
 }
 
@@ -19,7 +17,7 @@ ion-content.mapa-content {
 .map-nav {
   position: sticky; top: 0; z-index: 1000;
   height: var(--nav-h);
-  background: rgba(14,21,32,0.95);
+  background: rgba(0,0,0,0.96);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255,255,255,0.09);
   display: flex; align-items: center;
@@ -112,9 +110,7 @@ ion-content.mapa-content {
 #map {
   flex: 1; height: 100%; z-index: 1;
 
-  ::ng-deep .leaflet-tile-pane {
-    filter: invert(1) hue-rotate(180deg) brightness(0.92) saturate(0.75);
-  }
+  /* Sin filtro de inversión: el tile dark_matter ya es oscuro de forma nativa */
   ::ng-deep .leaflet-control-attribution { display: none; }
   ::ng-deep .leaflet-popup-content-wrapper {
     background: rgba(13,20,32,0.96) !important;
