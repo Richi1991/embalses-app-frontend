@@ -1,17 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <title>Embalses CHS</title>
-  <meta name="color-scheme" content="light dark" />
+  <meta name="color-scheme" content="dark" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#080c12" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <meta http-equiv="content-security-policy" content="" />
-  
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Fuentes — preconnect primero para no bloquear render -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <!-- Fondo base inmediato — evita el flash blanco antes de que cargue global.scss -->
+  <style>
+    html, body { margin: 0; background: #080c12; }
+  </style>
 </head>
+
 <body>
+
+  <!--
+    SPLASH DE CARGA
+    Visible desde el primer milisegundo (HTML puro, sin esperar a Angular).
+    AppComponent.ngAfterViewInit() lo oculta con fadeout cuando todo está listo.
+  -->
+  <div id="app-splash">
+    <div class="splash-logo">
+      <div class="splash-dot"></div>
+      <span>Embalses CHS</span>
+    </div>
+
+    <div class="splash-spinner"></div>
+
+    <div class="splash-status" id="splash-status-text">Iniciando aplicación...</div>
+  </div>
+
   <app-root></app-root>
+
+  <script>
+    // Actualiza el texto del splash según el tiempo de espera
+    // Así el usuario sabe que el servidor está despertando (Render free tier)
+    const statusEl = document.getElementById('splash-status-text');
+    const messages = [
+      [0,    'Iniciando aplicación...'],
+      [3000, 'Conectando con el servidor...'],
+      [8000, 'El servidor está despertando...'],
+      [15000,'Esto puede tardar hasta 30 segundos en la primera carga...'],
+      [25000,'Casi listo...'],
+    ];
+    messages.forEach(([delay, msg]) => {
+      setTimeout(() => {
+        if (statusEl && document.getElementById('app-splash')) {
+          statusEl.textContent = msg;
+        }
+      }, delay);
+    });
+  </script>
+
 </body>
 </html>
