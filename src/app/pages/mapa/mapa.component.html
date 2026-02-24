@@ -3,6 +3,11 @@
   <!-- NAV -->
   <div class="map-nav">
     <div class="nav-left">
+
+      <button class="theme-btn" (click)="toggleTheme()" [title]="lightMode ? 'Modo oscuro' : 'Modo claro'">
+        <span class="theme-icon">{{ lightMode ? '🌙' : '☀️' }}</span>
+      </button>
+
       <button class="back-btn" (click)="goBack()">
         <ion-icon name="arrow-back-outline"></ion-icon>
       </button>

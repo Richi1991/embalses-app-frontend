@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { mapOutline, arrowBackOutline } from 'ionicons/icons';
+import 'leaflet.markercluster';
 
 @Component({
   selector: 'app-mapa',
@@ -25,10 +26,15 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
+  lightMode = false;
+  private tileLayer!: L.TileLayer;
+
   // Map
   private map!: L.Map;
   private embalseMarkers: Map<number, L.Marker> = new Map();
   private estacionMarkersList: L.Marker[] = [];
+  private embalseCluster!: any;
+  private estacionCluster!: any;
 
   // State — embalses
   embalses: Embalse[] = [];
@@ -63,6 +69,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {
     addIcons({ mapOutline, arrowBackOutline });
+    this.lightMode = localStorage.getItem('mapa-theme') === 'light';
   }
 
   ngOnInit() {
@@ -138,15 +145,41 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!mapContainer) { setTimeout(() => this.initMap(), 200); return; }
 
     this.map = L.map('map', { center: [38.1, -1.5], zoom: 9, zoomControl: true, attributionControl: false });
+    this.tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(this.map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
+    // 1. Crear clusters primero
+    this.embalseCluster = (L as any).markerClusterGroup({
+      maxClusterRadius: 50,
+      iconCreateFunction: (cluster: any) => {
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: `<div style="width:42px;height:42px;border-radius:50%;background:rgba(0,212,170,0.2);border:2px solid #00d4aa;color:#00d4aa;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;box-shadow:0 2px 12px rgba(0,0,0,0.6)">${count}</div>`,
+          iconSize: [42, 42], iconAnchor: [21, 21], className: ''
+        });
+      }
+    });
 
+    this.estacionCluster = (L as any).markerClusterGroup({
+      maxClusterRadius: 30,
+      iconCreateFunction: (cluster: any) => {
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: `<div style="width:22px;height:22px;border-radius:4px;background:rgba(0,153,255,0.2);border:1.5px solid #0099ff;color:#0099ff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5)">${count}</div>`,
+          iconSize: [22, 22], iconAnchor: [11, 11], className: ''
+        });
+      }
+    });
+
+    if (this.layers.embalses) this.map.addLayer(this.embalseCluster);
+
+    // 2. Renderizar marcadores después
     if (this.embalses.length > 0) this.renderEmbalseMarkers();
   }
 
   // ── MARKERS EMBALSES ───────────────────────────────────────
   private renderEmbalseMarkers() {
-    this.embalseMarkers.forEach(m => this.map.removeLayer(m));
+    // Limpiar del cluster, no del mapa directamente
+    if (this.embalseCluster) this.embalseCluster.clearLayers();
     this.embalseMarkers.clear();
 
     this.embalses.forEach(e => {
@@ -164,25 +197,24 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const marker = L.marker([e.latitud, e.longitud], { icon })
         .bindPopup(`
-          <div style="font-family:'Syne',sans-serif;min-width:180px;padding:4px">
-            <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:#e8edf5">${e.nombre}</div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Volumen</span><span style="color:#e8edf5">${e.hm3.toFixed(2)} hm³</span></div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Porcentaje</span><span style="color:${color};font-weight:600">${e.porcentaje.toFixed(1)}%</span></div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Var. 24h</span><span style="color:${varColor}">${varStr} hm³</span></div>
-            <div style="height:4px;background:#111a27;border-radius:100px;overflow:hidden;margin-top:8px"><div style="height:100%;width:${e.porcentaje}%;background:${color};border-radius:100px"></div></div>
-          </div>`, { className: 'custom-popup' });
+        <div style="font-family:'Syne',sans-serif;min-width:180px;padding:4px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:#e8edf5">${e.nombre}</div>
+          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Volumen</span><span style="color:#e8edf5">${e.hm3.toFixed(2)} hm³</span></div>
+          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Porcentaje</span><span style="color:${color};font-weight:600">${e.porcentaje.toFixed(1)}%</span></div>
+          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b7a90;padding:3px 0"><span>Var. 24h</span><span style="color:${varColor}">${varStr} hm³</span></div>
+          <div style="height:4px;background:#111a27;border-radius:100px;overflow:hidden;margin-top:8px"><div style="height:100%;width:${e.porcentaje}%;background:${color};border-radius:100px"></div></div>
+        </div>`, { className: 'custom-popup' });
 
       marker.on('click', () => this.zone.run(() => { this.openDetailEmbalse(e); this.cdr.detectChanges(); }));
 
-      if (this.layers.embalses) marker.addTo(this.map);
+      this.embalseCluster.addLayer(marker);
       this.embalseMarkers.set(e.idEmbalse, marker);
     });
   }
 
   // ── MARKERS ESTACIONES ─────────────────────────────────────
   private renderEstacionMarkers() {
-    // Limpia los anteriores
-    this.estacionMarkersList.forEach(m => this.map.removeLayer(m));
+    if (this.estacionCluster) this.estacionCluster.clearLayers();
     this.estacionMarkersList = [];
 
     this.estaciones.forEach(e => {
@@ -195,17 +227,17 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const icon = L.divIcon({
         html: `<div style="
-          width:28px;height:28px;border-radius:6px;
-          background:rgba(0,153,255,0.15);
-          border:1.5px solid ${precipColor};
-          color:${precipColor};
-          display:flex;align-items:center;justify-content:center;
-          font-family:'JetBrains Mono',monospace;
-          font-size:8px;font-weight:700;
-          box-shadow:0 2px 8px rgba(0,0,0,0.5);
-          cursor:pointer;
-        ">${precip > 0 ? precip.toFixed(1) : '—'}</div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14], className: '',
+                width:18px;height:18px;border-radius:3px;
+                background:rgba(0,153,255,0.15);
+                border:1px solid ${precipColor};
+                color:${precipColor};
+                display:flex;align-items:center;justify-content:center;
+                font-family:'JetBrains Mono',monospace;
+                font-size:7px;font-weight:700;
+                box-shadow:0 1px 4px rgba(0,0,0,0.4);
+                cursor:pointer;
+              ">${precip > 0 ? precip.toFixed(0) : '—'}</div>`,
+        iconSize: [18, 18], iconAnchor: [9, 9], className: '',
       });
 
       const marker = L.marker([lat, lng], { icon })
@@ -221,9 +253,12 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       marker.on('click', () => this.zone.run(() => { this.openDetailEstacion(e); this.cdr.detectChanges(); }));
 
-      if (this.layers.estaciones) marker.addTo(this.map);
+      this.estacionCluster.addLayer(marker);
       this.estacionMarkersList.push(marker);
     });
+    if (this.layers.estaciones && !this.map.hasLayer(this.estacionCluster)) {
+      this.map.addLayer(this.estacionCluster);
+    }
   }
 
   // ── ACTIONS ────────────────────────────────────────────────
@@ -263,23 +298,34 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.layers[layer] = !this.layers[layer];
 
     if (layer === 'embalses') {
-      this.embalseMarkers.forEach(m => this.layers.embalses ? m.addTo(this.map) : this.map.removeLayer(m));
+      this.layers.embalses
+        ? this.map.addLayer(this.embalseCluster)
+        : this.map.removeLayer(this.embalseCluster);
     }
 
     if (layer === 'estaciones') {
       if (this.layers.estaciones) {
-        // Activa capa: carga datos si aún no se han cargado, si ya están los muestra
         if (!this.estacionesLoaded) {
           this.loadEstaciones();
         } else {
-          this.estacionMarkersList.forEach(m => m.addTo(this.map));
+          this.map.addLayer(this.estacionCluster);
         }
-        // Cambia al tab de estaciones automáticamente
         this.activeTab = 'estaciones';
       } else {
-        this.estacionMarkersList.forEach(m => this.map.removeLayer(m));
+        this.map.removeLayer(this.estacionCluster);
       }
     }
+  }
+
+  toggleTheme() {
+    this.lightMode = !this.lightMode;
+    localStorage.setItem('mapa-theme', this.lightMode ? 'light' : 'dark');
+
+    const tileUrl = this.lightMode
+      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+    this.tileLayer.setUrl(tileUrl);
   }
 
   setTab(tab: string) {
@@ -311,8 +357,8 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── HELPERS ────────────────────────────────────────────────
   getPctColor(pct: number): string {
-    if (pct >= 60) return '#00d4aa';
-    if (pct >= 40) return '#0099ff';
+    if (pct >= 60) return '#0099ff';
+    if (pct >= 40) return '#00d4aa';
     if (pct >= 25) return '#ffd60a';
     return '#ff4d6d';
   }
@@ -325,18 +371,18 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getPrecipColor(mm: number): string {
-    if (mm <= 0)   return '#4a5568';   // sin lluvia — gris
-    if (mm < 2)    return '#a0c4ff';   // traza
-    if (mm < 10)   return '#0099ff';   // lluvia ligera — azul
-    if (mm < 30)   return '#0055cc';   // moderada
+    if (mm <= 0) return '#4a5568';   // sin lluvia — gris
+    if (mm < 2) return '#a0c4ff';   // traza
+    if (mm < 10) return '#0099ff';   // lluvia ligera — azul
+    if (mm < 30) return '#0055cc';   // moderada
     return '#7b2fff';                   // intensa — violeta
   }
 
   getPrecipLabel(mm: number): string {
-    if (mm <= 0)  return 'Sin lluvia';
-    if (mm < 2)   return 'Traza';
-    if (mm < 10)  return 'Ligera';
-    if (mm < 30)  return 'Moderada';
+    if (mm <= 0) return 'Sin lluvia';
+    if (mm < 2) return 'Traza';
+    if (mm < 10) return 'Ligera';
+    if (mm < 30) return 'Moderada';
     return 'Intensa';
   }
 }

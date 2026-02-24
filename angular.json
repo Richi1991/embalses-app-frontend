@@ -49,10 +49,14 @@
               }
             ],
             "styles": [
+              "node_modules/leaflet.markercluster/dist/MarkerCluster.css",
+              "node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css",
               "src/global.scss",
               "src/theme/variables.scss"
             ],
-            "scripts": [],
+            "scripts": [
+                "node_modules/leaflet.markercluster/dist/leaflet.markercluster.js"
+            ],
             "browser": "src/main.ts"
           },
           "configurations": {
