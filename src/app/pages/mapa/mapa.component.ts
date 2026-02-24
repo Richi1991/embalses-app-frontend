@@ -5,8 +5,6 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { interval, Subscription, forkJoin } from 'rxjs';
-import * as L from 'leaflet';
-(window as any).L = L;
 import { EmbalseService, Embalse } from '../../services/embalse.service';
 import { EstacionesService, Estacion } from '../../services/estaciones.service';
 import { CommonModule } from '@angular/common';
@@ -14,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { mapOutline, arrowBackOutline } from 'ionicons/icons';
-import 'leaflet.markercluster';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-mapa',
@@ -78,7 +76,9 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadEmbalses();
   }
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
+    (window as any).L = L;
+    await import('leaflet.markercluster');
     setTimeout(() => this.initMap(), 400);
   }
 
@@ -149,7 +149,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(this.map);
 
     // 1. Crear clusters primero
-    this.embalseCluster = (L as any).markerClusterGroup({
+    this.embalseCluster = (window as any).L.markerClusterGroup({
       maxClusterRadius: 50,
       iconCreateFunction: (cluster: any) => {
         const count = cluster.getChildCount();
@@ -160,7 +160,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    this.estacionCluster = (L as any).markerClusterGroup({
+    this.estacionCluster = (window as any).L.markerClusterGroup({
       maxClusterRadius: 30,
       iconCreateFunction: (cluster: any) => {
         const count = cluster.getChildCount();
