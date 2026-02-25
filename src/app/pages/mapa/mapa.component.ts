@@ -222,7 +222,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       const lng = parseFloat(e.longitud);
       if (isNaN(lat) || isNaN(lng)) return;
 
-      const precip = e.precipitacionesDTO?.precipitacion24h ?? 0;
+      const precip = e.precipitacion_24h ?? 0;
       const precipColor = this.getPrecipColor(precip);
 
       const sz = this.getMarkerSize(18);
@@ -249,10 +249,12 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
           <div style="font-family:'Syne',sans-serif;min-width:200px;padding:4px">
             <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:${popupText}">${e.nombre}</div>
             <div style="font-size:10px;color:${popupSub};margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">${e.provincia} · ${e.altitud} m</div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 1h</span><span style="color:${popupText}">${e.precipitacionesDTO?.precipitacion1h?.toFixed(1) ?? '—'} mm</span></div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 6h</span><span style="color:${popupText}">${e.precipitacionesDTO?.precipitacion6h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 1h</span><span style="color:${popupText}">${e.precipitacion_1h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 3h</span><span style="color:${popupText}">${e.precipitacion_3h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 6h</span><span style="color:${popupText}">${e.precipitacion_6h?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 12h</span><span style="color:${popupText}">${e.precipitacion_12h?.toFixed(1) ?? '—'} mm</span></div>
             <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 24h</span><span style="color:${precipColor};font-weight:600">${precip.toFixed(1)} mm</span></div>
-            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Acum. año</span><span style="color:${popupText}">${e.precipitacionesDTO?.precipitacionYtd?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Acum. año</span><span style="color:${popupText}">${e.precipitacionYtd?.toFixed(1) ?? '—'} mm</span></div>
           </div>`, { className: 'custom-popup' });
 
       marker.on('click', () => this.zone.run(() => { this.openDetailEstacion(e); this.cdr.detectChanges(); }));
@@ -293,7 +295,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get estacionesConLluvia(): number {
-    return this.estaciones.filter(e => (e.precipitacionesDTO?.precipitacion24h ?? 0) > 0).length;
+    return this.estaciones.filter(e => (e.precipitacion_24h ?? 0) > 0).length;
   }
 
   togglePanel() { this.panelOpen = !this.panelOpen; }

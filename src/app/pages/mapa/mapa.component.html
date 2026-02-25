@@ -197,43 +197,43 @@
             <div class="precip-grid">
               <div class="precip-card">
                 <div class="precip-label">1 hora</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacionesDTO?.precipitacion1h ?? 0)">
-                  {{ selectedEstacion.precipitacionesDTO?.precipitacion1h | number:'1.1-1' }}
+                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_1h ?? 0)">
+                  {{ selectedEstacion.precipitacion_1h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card">
                 <div class="precip-label">3 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacionesDTO?.precipitacion3h ?? 0)">
-                  {{ selectedEstacion.precipitacionesDTO?.precipitacion3h | number:'1.1-1' }}
+                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_3h ?? 0)">
+                  {{ selectedEstacion.precipitacion_3h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card">
                 <div class="precip-label">6 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacionesDTO?.precipitacion6h ?? 0)">
-                  {{ selectedEstacion.precipitacionesDTO?.precipitacion6h | number:'1.1-1' }}
+                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_6h ?? 0)">
+                  {{ selectedEstacion.precipitacion_6h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card">
                 <div class="precip-label">12 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacionesDTO?.precipitacion12h ?? 0)">
-                  {{ selectedEstacion.precipitacionesDTO?.precipitacion12h | number:'1.1-1' }}
+                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_12h ?? 0)">
+                  {{ selectedEstacion.precipitacion_12h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card highlight">
                 <div class="precip-label">24 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacionesDTO?.precipitacion24h ?? 0)">
-                  {{ selectedEstacion.precipitacionesDTO?.precipitacion24h | number:'1.1-1' }}
+                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_24h ?? 0)">
+                  {{ selectedEstacion.precipitacion_24h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card highlight">
                 <div class="precip-label">Año en curso</div>
                 <div class="precip-value blue">
-                  {{ selectedEstacion.precipitacionesDTO?.precipitacionYtd | number:'1.0-0' }}
+                  {{ selectedEstacion.precipitacionYtd | number:'1.0-0' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
@@ -250,7 +250,7 @@
             <div class="list-item estacion-item" *ngFor="let e of filteredEstaciones"
               (click)="openDetailEstacion(e)">
               <div class="list-indicator-round"
-                [style.background]="getPrecipColor(e.precipitacionesDTO?.precipitacion24h ?? 0)">
+                [style.background]="getPrecipColor(e.precipitacion_24h ?? 0)">
               </div>
               <div class="list-info">
                 <div class="list-name">{{ e.nombre }}</div>
@@ -258,8 +258,8 @@
               </div>
               <div class="estacion-precip">
                 <div class="estacion-precip-value"
-                  [style.color]="getPrecipColor(e.precipitacionesDTO?.precipitacion24h ?? 0)">
-                  {{ (e.precipitacionesDTO?.precipitacion24h ?? 0) | number:'1.1-1' }}
+                  [style.color]="getPrecipColor(e.precipitacion_24h ?? 0)">
+                  {{ (e.precipitacion_24h ?? 0) | number:'1.1-1' }}
                 </div>
                 <div class="estacion-precip-unit">mm/24h</div>
               </div>

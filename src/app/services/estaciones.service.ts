@@ -11,17 +11,13 @@ export interface Estacion {
   indsinop: string;
   longitud: string;
   redOrigen: string;
-  precipitacionesDTO: Precipitaciones;
-  fechaActualizacion: Date;
-}
-
-export interface Precipitaciones {
-  precipitacion1h: number;
-  precipitacion3h: number;
-  precipitacion6h: number;
-  precipitacion12h: number;
-  precipitacion24h: number;
+  precipitacion_1h: number;
+  precipitacion_3h: number;
+  precipitacion_6h: number;
+  precipitacion_12h: number;
+  precipitacion_24h: number;
   precipitacionYtd: number;
+  fechaActualizacion: Date;
 }
 
 export interface HistoricoPrecipitaciones {
