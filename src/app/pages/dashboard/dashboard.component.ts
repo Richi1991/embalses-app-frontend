@@ -41,11 +41,21 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   loadError = false;
   loadingMsg = 'Conectando con el servidor...';
+  
+  periods = [
+    { label: '1D', value: 1 },
+    { label: '1S', value: 7 },
+    { label: '1M', value: 30 },
+    { label: '3M', value: 90 },
+    { label: '6M', value: 180 },
+    { label: '1A', value: 365 }
+  ];
 
   // KPIs
   totalVol = 0; totalPct = 0; totalCap = 0;
   variacion24h = 0; variacion7d = 0;
   embalsesAlerta = 0; embalsesCriticos = 0; encimaMitad = 0;
+  variacionDiaria = 0;
 
   // UI
   currentTime = ''; currentDate = '';
@@ -79,6 +89,19 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     localStorage.setItem('dashboard-theme', this.lightMode ? 'light' : 'dark');
     // Actualizar colores del chart según el tema
     setTimeout(() => this.rebuildChart(), 50);
+  }
+
+  calcularVariacionDiaria(): void {
+    
+    const hoy = new Date().toISOString().split('T')[0];
+
+    const datosHoy = this.historicoDiario.filter(e =>
+      new Date(e.fechaRegistro).toISOString().split('T')[0] === hoy
+    );
+
+    const primero = datosHoy[0]?.volumenTotal ?? 0;
+    const ultimo  = datosHoy.at(-1)?.volumenTotal ?? 0;
+    this.variacionDiaria = +(ultimo - primero).toFixed(3);
   }
 
   private startClock() {
@@ -131,10 +154,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private calcKpis() {
-    this.totalVol = this.embalses.reduce((s, e) => s + e.hm3, 0);
+    this.totalVol = this.historicoDiario.at(-1)?.volumenTotal ?? 0;
     this.totalCap = this.embalses.reduce((s, e) => s + e.capacidadMaximaEmbalse, 0);
-    this.totalPct = this.totalCap > 0 ? (this.totalVol / this.totalCap) * 100 : 0;
-    this.variacion24h = this.embalses.reduce((s, e) => s + e.variacion, 0);
+    this.totalPct = this.historicoDiario.at(-1)?.porcentajeTotal ?? 0;
+    this.calcularVariacionDiaria();
     this.embalsesAlerta = this.embalses.filter(e => e.porcentaje < 25 && e.porcentaje >= 15).length;
     this.embalsesCriticos = this.embalses.filter(e => e.porcentaje < 15).length;
     this.encimaMitad = this.embalses.filter(e => e.porcentaje >= 50).length;
@@ -255,7 +278,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setPeriod(period: string) { 
-    this.activePeriod = period; this.updateChart(); 
+    this.activePeriod = period; 
+    this.calcularVariacionDiaria;
+    this.updateChart(); 
   }
   
   getPctColor(pct: number): string {

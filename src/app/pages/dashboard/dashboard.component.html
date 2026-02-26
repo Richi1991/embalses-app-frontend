@@ -50,9 +50,9 @@
           {{ totalVol | number:'1.0-0' }}<span class="kpi-decimal">.{{ (totalVol % 1 * 100 | number:'2.0-0') }}</span>
         </div>
         <div class="kpi-unit">hm³</div>
-        <div class="kpi-delta" [class.down]="variacion24h < 0">
-          {{ variacion24h >= 0 ? '▲' : '▼' }}
-          {{ variacion24h > 0 ? '+' : '' }}{{ variacion24h | number:'1.2-2' }} hm³ hoy
+        <div class="kpi-delta" [class.down]="variacionDiaria < 0">
+          {{ variacionDiaria >= 0 ? '▲' : '▼' }}
+          {{ variacionDiaria > 0 ? '+' : '' }}{{ variacionDiaria | number:'1.2-2' }} hm³ hoy
         </div>
       </div>
       <div class="capacity-bar-wrap">
