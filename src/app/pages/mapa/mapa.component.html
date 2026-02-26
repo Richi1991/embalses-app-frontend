@@ -75,11 +75,18 @@
     <div class="period-bar" *ngIf="layers.estaciones && activeTab === 'estaciones'">
       <span class="period-bar-label">Período</span>
       <div class="period-selector">
-        <button *ngFor="let p of [1,3,6,12]" 
-          [class.active]="activePeriod === p"
-          class="period-btn" (click)="setPeriod(p)">{{ p }}</button>
+        <button *ngFor="let p of periods" [class.active]="activePeriod === p.value" class="period-btn"
+          (click)="cargarEstacionesDesdeBotoneraTiempo(p.value)">{{ p.label }}</button>
       </div>
     </div>
+
+    <!--<div class="color-scale" *ngIf="layers.estaciones && activeTab === 'estaciones'">
+      <div class="scale-title">mm</div>
+      <div class="scale-item" *ngFor="let item of colorScale">
+        <span class="scale-color" [style.background]="item.color" [style.box-shadow]="'0 0 6px ' + item.color"></span>
+        <span class="scale-label">{{ item.label }}</span>
+      </div>
+    </div> -->
 
 
     <!-- SIDE PANEL -->
@@ -204,35 +211,40 @@
             <div class="precip-grid">
               <div class="precip-card">
                 <div class="precip-label">1 hora</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_1h ?? 0)">
+                <div class="precip-value"
+                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_1h ?? 0, 'ULTIMO_DIA')">
                   {{ selectedEstacion.precipitacion_1h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card">
                 <div class="precip-label">3 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_3h ?? 0)">
+                <div class="precip-value"
+                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_3h ?? 0, 'ULTIMO_DIA')">
                   {{ selectedEstacion.precipitacion_3h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card">
                 <div class="precip-label">6 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_6h ?? 0)">
+                <div class="precip-value"
+                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_6h ?? 0, 'ULTIMO_DIA')">
                   {{ selectedEstacion.precipitacion_6h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card">
                 <div class="precip-label">12 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_12h ?? 0)">
+                <div class="precip-value"
+                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_12h ?? 0, 'ULTIMO_DIA')">
                   {{ selectedEstacion.precipitacion_12h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
               </div>
               <div class="precip-card highlight">
                 <div class="precip-label">24 horas</div>
-                <div class="precip-value" [style.color]="getPrecipColor(selectedEstacion.precipitacion_24h ?? 0)">
+                <div class="precip-value"
+                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_24h ?? 0, 'ULTIMO_DIA')">
                   {{ selectedEstacion.precipitacion_24h | number:'1.1-1' }}
                 </div>
                 <div class="precip-unit">mm</div>
@@ -255,14 +267,16 @@
           <!-- Lista estaciones -->
           <div class="list-view" *ngIf="!selectedEstacion && !loadingEstaciones">
             <div class="list-item estacion-item" *ngFor="let e of filteredEstaciones" (click)="openDetailEstacion(e)">
-              <div class="list-indicator-round" [style.background]="getPrecipColor(e.precipitacion_24h ?? 0)">
+              <div class="list-indicator-round"
+                [style.background]="getPrecipitationColorHistorico(e.precipitacion_24h ?? 0, 'ULTIMO_DIA')">
               </div>
               <div class="list-info">
                 <div class="list-name">{{ e.nombre }}</div>
                 <div class="list-sub">{{ e.provincia }} · {{ e.altitud }} m</div>
               </div>
               <div class="estacion-precip">
-                <div class="estacion-precip-value" [style.color]="getPrecipColor(e.precipitacion_24h ?? 0)">
+                <div class="estacion-precip-value"
+                  [style.color]="getPrecipitationColorHistorico(e.precipitacion_24h ?? 0, 'ULTIMO_DIA')">
                   {{ (e.precipitacion_24h ?? 0) | number:'1.1-1' }}
                 </div>
                 <div class="estacion-precip-unit">mm/24h</div>

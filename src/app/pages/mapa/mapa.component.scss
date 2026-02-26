@@ -484,6 +484,51 @@ ion-content.mapa-content {
   }
 }
 
+/**.color-scale {
+ position: absolute;
+  right: 360px;  
+  bottom: 40px;
+  z-index: 1000;
+  background: rgba(13, 20, 32, 0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.scale-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #6b7a90;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.scale-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scale-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.scale-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #e8edf5;
+}**/
+
 .panel-tabs {
   display: flex;
 }

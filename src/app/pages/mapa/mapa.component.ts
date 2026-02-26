@@ -50,14 +50,23 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   loadingEstaciones = false;
   estacionesLoaded = false;
   sonDatosEstacionesHistoricas = false;
-  activePeriod = 1;
-  periodoSeleccionado = 1;
+  activePeriod: string = 'ULTIMO_DIA';
   panelOpen = window.innerWidth > 768;
   activeTab = 'embalses';
   searchQuery = '';
   currentTime = '';
   today = '';
   layers = { embalses: true, estaciones: false, cauces: false };
+
+  periods = [
+    { label: '1D', value: 'ULTIMO_DIA' },
+    { label: '1S', value: 'ULTIMA_SEMANA' },
+    { label: '1M', value: 'ULTIMO_MES' },
+    { label: '3M', value: 'ULTIMOS_TRES_MESES' },
+    { label: '6M', value: 'ULTIMOS_SEIS_MESES' },
+    { label: '1A', value: 'ULTIMO_ANIO' }
+  ];
+
 
   // KPIs
   totalVol = 0;
@@ -162,7 +171,8 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.map.on('zoomend', () => {
       if (this.embalses.length > 0) this.renderEmbalseMarkers();
-      if (this.estacionesLoaded && this.layers.estaciones) this.renderEstacionMarkers();
+      if (this.estacionesLoaded && this.layers.estaciones && !this.sonDatosEstacionesHistoricas) this.renderEstacionMarkers();
+      if (this.estacionesLoaded && this.layers.estaciones && this.sonDatosEstacionesHistoricas) this.renderEstacionMarkersHistoricas();
     });
 
     if (this.embalses.length > 0) this.renderEmbalseMarkers();
@@ -225,7 +235,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isNaN(lat) || isNaN(lng)) return;
 
       const precip = e.precipitacion_24h ?? 0;
-      const precipColor = this.getPrecipColor(precip);
+      const precipColor = this.getPrecipitationColorHistorico(precip, this.activePeriod);
 
       const sz = this.getMarkerSize(18);
       const icon = L.divIcon({
@@ -283,7 +293,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const valorAcumulado = precipAcu.valorAcumulado;
       const precip = precipAcu.valorAcumulado ?? 0;
-      const precipColor = this.getPrecipitationColorHistorico(precip, this.activePeriod as 1 | 3 | 6 | 12);
+      const precipColor = this.getPrecipitationColorHistorico(precip, this.activePeriod);
 
       const sz = this.getMarkerSize(18);
       const icon = L.divIcon({
@@ -312,7 +322,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
             <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 1h</span><span style="color:${popupText}">${valorAcumulado?.toFixed(1) ?? '—'} mm</span></div>
             <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 3h</span><span style="color:${popupText}">${this.activePeriod} meses</span></div>
           </div>`, { className: 'custom-popup' });
-      
+
       marker.on('click', () => this.zone.run(() => { this.openDetailEstacionHistorica(precipAcu); this.cdr.detectChanges(); }));
 
       this.estacionLayer.addLayer(marker);
@@ -324,43 +334,73 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  getPrecipitationColorHistorico(meses: number, rango: 1 | 3 | 6 | 12): string {
+  getPrecipitationColorHistorico(precipitacion: number, activePeriod: string): string {
 
     // 1. Definimos los umbrales para cada periodo
-    const escalas: Record<number, number[]> = {
-      1: [150, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5],
-      3: [300, 280, 250, 225, 200, 180, 160, 150, 100, 80, 60, 40],
-      6: [700, 550, 450, 350, 280, 250, 180, 150, 125, 100, 80, 50],
-      12: [1000, 800, 700, 600, 500, 400, 300, 250, 200, 100, 85, 50]
-    };
-
-    // 2. Definimos tu paleta de colores (se mantiene constante)
-    const colores = [
-      '#990033', // Granate (Máximo)
-      '#ff00ff', // Magenta
-      '#cc33ff', // Morado fuerte
-      '#9966ff', // Violeta
-      '#0000c5ff', // Azul casi negro
-      '#0000ffff', // Azul oscuro
-      '#0066ff', // Azul medio
-      '#3399ff', // Azul claro
-      '#66cccc', // Cian
-      '#99ff99', // Verde claro
-      '#ccff99', // Verde amarillento
-      '#ffffcc'  // Amarillo muy pálido (Mínimo)
-    ];
+    const { escalas, colores }: { escalas: Record<string, number[]>; colores: string[]; } = this.obtenerEscalasAndColores();
 
     // 3. Obtenemos los umbrales según el rango elegido
-    const umbrales = escalas[rango];
+    const umbrales = escalas[activePeriod];
 
     // 4. Buscamos el color correspondiente
     for (let i = 0; i < umbrales.length; i++) {
-      if (meses > umbrales[i]) {
+      if (precipitacion > umbrales[i]) {
         return colores[i];
       }
     }
 
-    return 'transparent'; // Si no llega al mínimo
+    return '#b9b9b9'; // Si no llega al mínimo
+  }
+
+  /**get colorScale() {
+    const { escalas, colores }: { escalas: Record<string, number[]>; colores: string[]; } = this.obtenerEscalasAndColores();
+    const u = escalas[this.activePeriod];
+
+    return [
+      { color: colores[0], label: `> ${u[0]}` },
+      { color: colores[1], label: `> ${u[1]}` },
+      { color: colores[2], label: `> ${u[2]}` },
+      { color: colores[3], label: `> ${u[3]}` },
+      { color: colores[4], label: `> ${u[4]}` },
+      { color: colores[5], label: `> ${u[5]}` },
+      { color: colores[6], label: `> ${u[6]}` },
+      { color: colores[7], label: `> ${u[7]}` },
+      { color: colores[8], label: `> ${u[8]}` },
+      { color: colores[9], label: `> ${u[9]}` },
+      { color: colores[10], label: `> ${u[10]}` },
+      { color: colores[11], label: `> ${u[11]}` },
+    ];
+  }**/
+
+
+  private obtenerEscalasAndColores() {
+    const escalas: Record<string, number[]> = {
+      "ULTIMO_DIA": [100, 80, 70, 60, 50, 40, 30, 20, 10, 5, 1, 0.1, 0],
+      "ULTIMA_SEMANA": [150, 125, 100, 85, 75, 60, 50, 30, 20, 10, 5, 1, 0],
+      "ULTIMAS_DOS_SEMANAS": [200, 150, 130, 100, 80, 60, 50, 30, 20, 10, 5, 1, 0],
+      "ULTIMO_MES": [200, 160, 130, 110, 90, 70, 50, 30, 20, 10, 5, 1, 0],
+      "ULTIMOS_TRES_MESES": [350, 280, 225, 180, 150, 120, 80, 50, 30, 20, 10, 5, 0],
+      "ULTIMOS_SEIS_MESES": [600, 500, 400, 350, 280, 225, 175, 125, 80, 40, 20, 10, 0],
+      "ULTIMO_ANIO": [1000, 800, 700, 550, 400, 300, 200, 150, 100, 80, 50, 20, 0]
+    };
+
+    // 2. Definimos tu paleta de colores (se mantiene constante)
+    const colores = [
+      '#ff3366', // Rosa neón (Máximo) — en vez de granate oscuro
+      '#ff66ff', // Magenta brillante
+      '#cc66ff', // Violeta neón
+      '#aa88ff', // Lavanda
+      '#4444ff', // Azul eléctrico — en vez de azul casi negro
+      '#3399ff', // Azul brillante
+      '#00ccff', // Cian eléctrico
+      '#00ffcc', // Verde agua neón
+      '#66ffaa', // Verde menta
+      '#ccff66', // Lima
+      '#ffff44', // Amarillo neón
+      '#b9b9b9',
+      '#ffffff' // Blanco (Mínimo) — en vez de amarillo pálido
+    ];
+    return { escalas, colores };
   }
 
   // ── ACTIONS ────────────────────────────────────────────────
@@ -382,7 +422,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!isNaN(lat) && !isNaN(lng)) this.map.flyTo([lat, lng], 13, { duration: 1.2 });
   }
 
-   openDetailEstacionHistorica(precipAcu: PrecipitacionAcumulada) {
+  openDetailEstacionHistorica(precipAcu: PrecipitacionAcumulada) {
     this.selectedEmbalse = null;
     if (!this.panelOpen) this.panelOpen = true;
     this.activeTab = 'estaciones';
@@ -438,7 +478,8 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Re-render markers so popup colors match the new theme
     if (this.embalses.length > 0) this.renderEmbalseMarkers();
-    if (this.estacionesLoaded && this.layers.estaciones) this.renderEstacionMarkers();
+    if (this.estacionesLoaded && this.layers.estaciones && !this.sonDatosEstacionesHistoricas) this.renderEstacionMarkers();
+    if (this.estacionesLoaded && this.layers.estaciones && this.sonDatosEstacionesHistoricas) this.renderEstacionMarkersHistoricas();
 
     this.cdr.detectChanges();
   }
@@ -455,19 +496,20 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.filteredEstaciones = [...this.estaciones];
   }
 
-  setPeriod(period: number) {
+  cargarEstacionesDesdeBotoneraTiempo(period: string) {
     this.estacionesService.getHistoricoPrecipitaciones(period).subscribe({
       next: (data) => {
         this.precipitacionAcumulada = data.filter(e => e.indicativo && e.nombre && e.valorAcumulado);
         this.estacionesLoaded = true;
-        this.periodoSeleccionado = period;
+        this.activePeriod = period;
         this.loadingEstaciones = false;
         this.sonDatosEstacionesHistoricas = true;
-        if (this.map) this.renderEstacionMarkersHistoricas();
+        if (this.map && period !== 'ULTIMO DIA') this.renderEstacionMarkersHistoricas();
+        this.cdr.detectChanges();
+        if (this.map && period === 'ULTIMO DIA') this.renderEstacionMarkers();
         this.cdr.detectChanges();
       }
     });
-    /**this.updateChart(); **/
   }
 
   onSearch() {
@@ -496,14 +538,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (pct >= 40) return 'rgba(0,212,170,0.18)';
     if (pct >= 25) return 'rgba(255,214,10,0.18)';
     return 'rgba(255,77,109,0.18)';
-  }
-
-  getPrecipColor(mm: number): string {
-    if (mm <= 0) return '#4a5568';
-    if (mm < 2) return '#a0c4ff';
-    if (mm < 10) return '#0099ff';
-    if (mm < 30) return '#0055cc';
-    return '#7b2fff';
   }
 
   getPrecipLabel(mm: number): string {

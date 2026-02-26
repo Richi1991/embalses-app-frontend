@@ -47,6 +47,16 @@ export interface PrecipitacionMapa {
   getRes_tipo: string;
 }
 
+export const RangoTemporal = {
+  ULTIMO_DIA: 'ULTIMO_DIA',
+  ULTIMA_SEMANA: 'ULTIMA_SEMANA',
+  ULTIMAS_DOS_SEMANAS: 'ULTIMAS_DOS_SEMANAS',
+  ULTIMO_MES: 'ULTIMO_MES',
+  ULTIMOS_TRES_MESES: 'ULTIMOS_TRES_MESES',
+  ULTIMOS_SEIS_MESES: 'ULTIMOS_SEIS_MESES',
+  ULTIMO_ANIO: 'ULTIMO_ANIO'
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -63,8 +73,8 @@ export class EstacionesService {
       return this.http.get<Estacion[]>(url);
     }
 
-    getHistoricoPrecipitaciones(rango: number): Observable<PrecipitacionAcumulada[]> {
+    getHistoricoPrecipitaciones(RangoTemporal: any): Observable<PrecipitacionAcumulada[]> {
       const url = this.apiUrlObtenerValoresPrecipitacionesAcumulados;
-      return this.http.get<PrecipitacionAcumulada[]>(`${url}/${rango}`);
+      return this.http.get<PrecipitacionAcumulada[]>(`${url}/${RangoTemporal}`);
     }
 }
