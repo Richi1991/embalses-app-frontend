@@ -254,14 +254,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  setPeriod(period: string) { this.activePeriod = period; this.updateChart(); }
-  setChartMode(mode: 'VOL' | 'PCT') {
-    this.chartMode = mode;
-    setTimeout(() => {
-      this.updateChart();
-    }, 100);
+  setPeriod(period: string) { 
+    this.activePeriod = period; this.updateChart(); 
   }
-
+  
   getPctColor(pct: number): string {
     if (pct >= 60) return '#0099ff';
     if (pct >= 40) return '#00d4aa';

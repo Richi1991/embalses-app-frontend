@@ -34,9 +34,9 @@ export interface HistoricoPrecipitaciones {
 export interface PrecipitacionAcumulada {
   indicativo: string;
   nombre: string;
-  valor_acumulado: number;
-  lat: number;
-  lng: number;
+  valorAcumulado: number;
+  latitud: string;
+  longitud: string;
 }
 
 export interface PrecipitacionMapa {
@@ -45,12 +45,6 @@ export interface PrecipitacionMapa {
   getRes_nombre: string;
   getRes_mm_acumulados: string;
   getRes_tipo: string;
-}
-
-interface PuntoIDW {
-  lat: number;
-  lng: number;
-  mm: number;
 }
 
 @Injectable({
@@ -69,7 +63,7 @@ export class EstacionesService {
       return this.http.get<Estacion[]>(url);
     }
 
-    getHistoricoPrecipitaciones(rango: string): Observable<PrecipitacionAcumulada[]> {
+    getHistoricoPrecipitaciones(rango: number): Observable<PrecipitacionAcumulada[]> {
       const url = this.apiUrlObtenerValoresPrecipitacionesAcumulados;
       return this.http.get<PrecipitacionAcumulada[]>(`${url}/${rango}`);
     }

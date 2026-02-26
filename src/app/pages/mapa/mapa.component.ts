@@ -6,7 +6,7 @@ import {
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { EmbalseService, Embalse } from '../../services/embalse.service';
-import { EstacionesService, Estacion } from '../../services/estaciones.service';
+import { EstacionesService, Estacion, PrecipitacionAcumulada } from '../../services/estaciones.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -36,6 +36,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   private estacionMarkersList: L.Marker[] = [];
   private embalseLayer!: L.LayerGroup;
   private estacionLayer!: L.LayerGroup;
+  private precipitacionAcumulada: PrecipitacionAcumulada[] = [];
 
   // State — embalses
   embalses: Embalse[] = [];
@@ -48,7 +49,9 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedEstacion: Estacion | null = null;
   loadingEstaciones = false;
   estacionesLoaded = false;
-
+  sonDatosEstacionesHistoricas = false;
+  activePeriod = 1;
+  periodoSeleccionado = 1;
   panelOpen = window.innerWidth > 768;
   activeTab = 'embalses';
   searchQuery = '';
@@ -147,7 +150,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map = L.map('map', { center: [38.1, -1.5], zoom: 9, zoomControl: true, attributionControl: false });
 
     // dark_nolabels: sin cuadrícula de líneas blancas, fondo muy oscuro con detalle
-    const darkTile  = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+    const darkTile = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
     const lightTile = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
     this.tileLayer = L.tileLayer(this.lightMode ? lightTile : darkTile, { maxZoom: 18 }).addTo(this.map);
@@ -183,7 +186,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       const size = this.getMarkerSize(36);
 
       const icon = L.divIcon({
-        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:${Math.max(7,Math.round(size*0.25))}px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.45);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:${Math.max(7, Math.round(size * 0.25))}px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.45);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
         iconSize: [size, size], iconAnchor: [size / 2, size / 2], className: '',
       });
 
@@ -192,7 +195,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // Popup adapts to current theme
       const popupText = this.lightMode ? '#1a2535' : '#e8edf5';
-      const popupSub  = this.lightMode ? '#6b7a90' : '#6b7a90';
+      const popupSub = this.lightMode ? '#6b7a90' : '#6b7a90';
       const popupBarBg = this.lightMode ? '#dde3ee' : '#111a27';
 
       const marker = L.marker([e.latitud, e.longitud], { icon })
@@ -212,7 +215,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // ── MARKERS ESTACIONES ─────────────────────────────────────
   private renderEstacionMarkers() {
     if (this.estacionLayer) this.estacionLayer.clearLayers();
     this.estacionMarkersList = [];
@@ -242,7 +244,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       const popupText = this.lightMode ? '#1a2535' : '#e8edf5';
-      const popupSub  = '#6b7a90';
+      const popupSub = '#6b7a90';
 
       const marker = L.marker([lat, lng], { icon })
         .bindPopup(`
@@ -268,6 +270,99 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // ── MARKERS ESTACIONES ─────────────────────────────────────
+  private renderEstacionMarkersHistoricas() {
+
+    if (this.estacionLayer) this.estacionLayer.clearLayers();
+    this.estacionMarkersList = [];
+    this.precipitacionAcumulada.forEach(precipAcu => {
+      const lat = parseFloat(precipAcu.latitud);
+      const lng = parseFloat(precipAcu.longitud);
+
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const valorAcumulado = precipAcu.valorAcumulado;
+      const precip = precipAcu.valorAcumulado ?? 0;
+      const precipColor = this.getPrecipitationColorHistorico(precip, this.activePeriod as 1 | 3 | 6 | 12);
+
+      const sz = this.getMarkerSize(18);
+      const icon = L.divIcon({
+        html: `<div style="
+                width:${sz}px;height:${sz}px;border-radius:3px;
+                background:rgba(0,153,255,0.15);
+                border:1px solid ${precipColor};
+                color:${precipColor};
+                display:flex;align-items:center;justify-content:center;
+                font-family:'JetBrains Mono',monospace;
+                font-size:${Math.max(6, Math.round(sz * 0.38))}px;font-weight:700;
+                box-shadow:0 1px 4px rgba(0,0,0,0.35);
+                cursor:pointer;
+              ">${precip > 0 ? precip.toFixed(0) : '—'}</div>`,
+        iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2], className: '',
+      });
+
+      const popupText = this.lightMode ? '#1a2535' : '#e8edf5';
+      const popupSub = '#6b7a90';
+
+      const marker = L.marker([lat, lng], { icon })
+        .bindPopup(`
+          <div style="font-family:'Syne',sans-serif;min-width:200px;padding:4px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:${popupText}">${precipAcu.nombre}</div>
+            <div style="font-size:10px;color:${popupSub};margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">${precipAcu.indicativo}</div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 1h</span><span style="color:${popupText}">${valorAcumulado?.toFixed(1) ?? '—'} mm</span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:${popupSub};padding:3px 0"><span>Precip. 3h</span><span style="color:${popupText}">${this.activePeriod} meses</span></div>
+          </div>`, { className: 'custom-popup' });
+      
+      marker.on('click', () => this.zone.run(() => { this.openDetailEstacionHistorica(precipAcu); this.cdr.detectChanges(); }));
+
+      this.estacionLayer.addLayer(marker);
+      this.estacionMarkersList.push(marker);
+    });
+
+    if (this.layers.estaciones && !this.map.hasLayer(this.estacionLayer)) {
+      this.map.addLayer(this.estacionLayer);
+    }
+  }
+
+  getPrecipitationColorHistorico(meses: number, rango: 1 | 3 | 6 | 12): string {
+
+    // 1. Definimos los umbrales para cada periodo
+    const escalas: Record<number, number[]> = {
+      1: [150, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5],
+      3: [300, 280, 250, 225, 200, 180, 160, 150, 100, 80, 60, 40],
+      6: [700, 550, 450, 350, 280, 250, 180, 150, 125, 100, 80, 50],
+      12: [1000, 800, 700, 600, 500, 400, 300, 250, 200, 100, 85, 50]
+    };
+
+    // 2. Definimos tu paleta de colores (se mantiene constante)
+    const colores = [
+      '#990033', // Granate (Máximo)
+      '#ff00ff', // Magenta
+      '#cc33ff', // Morado fuerte
+      '#9966ff', // Violeta
+      '#0000c5ff', // Azul casi negro
+      '#0000ffff', // Azul oscuro
+      '#0066ff', // Azul medio
+      '#3399ff', // Azul claro
+      '#66cccc', // Cian
+      '#99ff99', // Verde claro
+      '#ccff99', // Verde amarillento
+      '#ffffcc'  // Amarillo muy pálido (Mínimo)
+    ];
+
+    // 3. Obtenemos los umbrales según el rango elegido
+    const umbrales = escalas[rango];
+
+    // 4. Buscamos el color correspondiente
+    for (let i = 0; i < umbrales.length; i++) {
+      if (meses > umbrales[i]) {
+        return colores[i];
+      }
+    }
+
+    return 'transparent'; // Si no llega al mínimo
+  }
+
   // ── ACTIONS ────────────────────────────────────────────────
   openDetailEmbalse(embalse: Embalse) {
     this.selectedEmbalse = embalse;
@@ -284,6 +379,15 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeTab = 'estaciones';
     const lat = parseFloat(estacion.latitud);
     const lng = parseFloat(estacion.longitud);
+    if (!isNaN(lat) && !isNaN(lng)) this.map.flyTo([lat, lng], 13, { duration: 1.2 });
+  }
+
+   openDetailEstacionHistorica(precipAcu: PrecipitacionAcumulada) {
+    this.selectedEmbalse = null;
+    if (!this.panelOpen) this.panelOpen = true;
+    this.activeTab = 'estaciones';
+    const lat = parseFloat(precipAcu.latitud);
+    const lng = parseFloat(precipAcu.longitud);
     if (!isNaN(lat) && !isNaN(lng)) this.map.flyTo([lat, lng], 13, { duration: 1.2 });
   }
 
@@ -328,7 +432,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     localStorage.setItem('mapa-theme', this.lightMode ? 'light' : 'dark');
 
     // Swap tile layer
-    const darkTile  = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+    const darkTile = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
     const lightTile = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
     this.tileLayer.setUrl(this.lightMode ? lightTile : darkTile);
 
@@ -349,6 +453,21 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchQuery = '';
     this.filteredEmbalses = [...this.embalses];
     this.filteredEstaciones = [...this.estaciones];
+  }
+
+  setPeriod(period: number) {
+    this.estacionesService.getHistoricoPrecipitaciones(period).subscribe({
+      next: (data) => {
+        this.precipitacionAcumulada = data.filter(e => e.indicativo && e.nombre && e.valorAcumulado);
+        this.estacionesLoaded = true;
+        this.periodoSeleccionado = period;
+        this.loadingEstaciones = false;
+        this.sonDatosEstacionesHistoricas = true;
+        if (this.map) this.renderEstacionMarkersHistoricas();
+        this.cdr.detectChanges();
+      }
+    });
+    /**this.updateChart(); **/
   }
 
   onSearch() {
@@ -381,7 +500,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getPrecipColor(mm: number): string {
     if (mm <= 0) return '#4a5568';
-    if (mm < 2)  return '#a0c4ff';
+    if (mm < 2) return '#a0c4ff';
     if (mm < 10) return '#0099ff';
     if (mm < 30) return '#0055cc';
     return '#7b2fff';
@@ -389,7 +508,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getPrecipLabel(mm: number): string {
     if (mm <= 0) return 'Sin lluvia';
-    if (mm < 2)  return 'Traza';
+    if (mm < 2) return 'Traza';
     if (mm < 10) return 'Ligera';
     if (mm < 30) return 'Moderada';
     return 'Intensa';
