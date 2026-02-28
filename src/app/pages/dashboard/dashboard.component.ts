@@ -54,7 +54,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   // KPIs
   totalVol = 0; totalPct = 0; totalCap = 0;
   variacion24h = 0; variacion7d = 0;
-  embalsesAlerta = 0; embalsesCriticos = 0; encimaMitad = 0;
+  embalsesAlerta = 0; embalsesCriticos = 0; encimaMitad = 0; normalidad = 0;
   variacionDiaria = 0;
 
   // UI
@@ -161,6 +161,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     this.embalsesAlerta = this.embalses.filter(e => e.porcentaje < 25 && e.porcentaje >= 15).length;
     this.embalsesCriticos = this.embalses.filter(e => e.porcentaje < 15).length;
     this.encimaMitad = this.embalses.filter(e => e.porcentaje >= 50).length;
+    this.normalidad = this.embalses.filter(e => e.porcentaje < 50 && e.porcentaje >= 25).length;
   }
 
   // Colores del chart según tema activo
@@ -318,5 +319,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goToMapa() { this.router.navigate(['/mapa']); }
-  goToEmbalse(id: number) { this.router.navigate(['/embalse', id]); }
+  goToEmbalse(id: number) { 
+    this.router.navigate(['/embalse', id]); 
+  }
 }

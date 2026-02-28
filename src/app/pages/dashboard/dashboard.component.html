@@ -75,16 +75,24 @@
           <div class="kpi-sec-value">{{ embalses.length }}</div>
         </div>
         <div class="kpi-sec-item">
-          <div class="kpi-sec-label">+50%</div>
+          <div class="kpi-sec-label">Buen Estado</div>
           <div class="kpi-sec-value blue">{{ encimaMitad }}</div>
+          <div class="stat-sub">por encima del 50%</div>
+        </div>
+        <div class="kpi-sec-item">
+          <div class="kpi-sec-label">Normalidad</div>
+          <div class="kpi-sec-value green">{{ normalidad }}</div>
+          <div class="stat-sub">entre el 25% y el 50%</div>
         </div>
         <div class="kpi-sec-item">
           <div class="kpi-sec-label">Alerta</div>
           <div class="kpi-sec-value yellow">{{ embalsesAlerta }}</div>
+          <div class="stat-sub">por debajo del 25%</div>
         </div>
         <div class="kpi-sec-item">
           <div class="kpi-sec-label">Críticos</div>
           <div class="kpi-sec-value red">{{ embalsesCriticos }}</div>
+          <div class="stat-sub">por debajo del 15%</div>
         </div>
       </div>
     </div>
@@ -153,30 +161,5 @@
         </ng-container>
       </div>
     </div>
-
-    <!-- BOTTOM STATS -->
-    <div class="bottom-stats">
-      <div class="stat-card green">
-        <div class="stat-label">Embalses por encima del 50%</div>
-        <div class="stat-value">{{ encimaMitad }}</div>
-        <div class="stat-sub">de {{ embalses.length }} embalses</div>
-      </div>
-      <div class="stat-card blue">
-        <div class="stat-label">Capacidad total cuenca</div>
-        <div class="stat-value">{{ totalCap | number:'1.0-0' }}</div>
-        <div class="stat-sub">hm³ máximo</div>
-      </div>
-      <div class="stat-card yellow">
-        <div class="stat-label">Embalses en alerta</div>
-        <div class="stat-value">{{ embalsesAlerta }}</div>
-        <div class="stat-sub">por debajo del 25%</div>
-      </div>
-      <div class="stat-card red">
-        <div class="stat-label">Embalses críticos</div>
-        <div class="stat-value">{{ embalsesCriticos }}</div>
-        <div class="stat-sub">por debajo del 15%</div>
-      </div>
-    </div>
-
   </div>
 </ion-content>

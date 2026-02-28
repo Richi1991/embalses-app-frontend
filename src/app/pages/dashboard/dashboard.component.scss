@@ -273,13 +273,6 @@ ion-content.dash-content {
   grid-row: 1 / 4;
 }
 
-.bottom-stats {
-  grid-column: 1 / 3;
-  grid-row: 4;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
 
 /* ============================================================
    MÓVIL
@@ -334,37 +327,31 @@ ion-content.dash-content {
   .period-bar,
   .chart-card,
   .right-col,
-  .bottom-stats {
-    grid-column: 1 / -1 !important;
-    grid-row: auto !important;
-  }
 
   .period-bar {
     border-radius: 12px;
     padding: 8px 12px;
   }
 
-  .bottom-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .kpi-value {
-    font-size: 48px;
+    font-size: 36px;
     letter-spacing: -2px;
 
     .kpi-decimal {
-      font-size: 28px;
+      font-size: 22px; // más pequeño que el número principal
     }
   }
 
   .kpi-secondary {
-    gap: 16px;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    overflow-x: unset;
+    padding-bottom: 0;
   }
 
+
   .kpi-sec-item {
-    flex-shrink: 0;
+    min-width: unset; // por si tenía un min-width fijo
   }
 }
 
@@ -382,7 +369,7 @@ ion-content.dash-content {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 28px 32px;
+  padding: 16px;
   position: relative;
   overflow: visible;
 
@@ -416,7 +403,7 @@ ion-content.dash-content {
 }
 
 .kpi-value {
-  font-size: 64px;
+  font-size: 40px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -3px;
@@ -424,7 +411,7 @@ ion-content.dash-content {
 
   .kpi-decimal {
     color: var(--muted2);
-    font-size: 36px;
+    font-size: 24px;
   }
 }
 
@@ -487,17 +474,18 @@ ion-content.dash-content {
 }
 
 .kpi-secondary {
-  display: flex;
-  gap: 32px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  overflow-x: unset;
+  padding-bottom: 0;
 }
 
 .kpi-sec-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
 }
 
 .kpi-sec-label {
@@ -511,7 +499,7 @@ ion-content.dash-content {
 .kpi-sec-value {
   font-family: 'JetBrains Mono', monospace;
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
 
   &.green {
@@ -599,6 +587,7 @@ ion-content.dash-content {
   padding: 0;
   overflow: visible; // ← cambia hidden por visible
   border-radius: 16px; // mantén el border-radius explícito
+
   .mover-item:last-child {
     border-radius: 0 0 16px 16px;
   }
