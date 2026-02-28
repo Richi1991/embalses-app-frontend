@@ -191,7 +191,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     const c = this.chartColors();
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 280);
-    gradient.addColorStop(0, 'rgba(0,212,170,0.2)');
+    gradient.addColorStop(0, 'rgba(0, 148, 212, 0.2)');
     gradient.addColorStop(1, 'rgba(0,212,170,0)');
 
     this.chart = new (window as any).Chart(ctx, {
@@ -200,9 +200,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         labels: [],
         datasets: [
           {
-            data: [], borderColor: '#00d4aa', borderWidth: 2,
-            fill: true, backgroundColor: gradient, tension: 0.4,
-            pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#00d4aa',
+            data: [], borderColor: '#00a6ff', borderWidth: 2,
+            fill: true, backgroundColor: gradient, tension: 0.1,
+            pointRadius: 0, pointHoverRadius: 2, pointHoverBackgroundColor: '#00a6ff',
             yAxisID: 'yVol'
           },
           {
@@ -234,9 +234,16 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           }
         },
         scales: {
-          x: { grid: { color: c.grid }, border: { color: c.border }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 8, maxRotation: 0 } },
-          yVol: { position: 'right', grid: { color: c.grid }, border: { color: 'transparent' }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, callback: (v: number) => v.toFixed(0) + ' hm³' } },
-          yPct: { position: 'left', grid: { display: false }, border: { color: 'transparent' }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, callback: (v: number) => v.toFixed(1) + '%' } }
+          x: { grid: { color: c.grid }, border: { color: c.border }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 12, maxRotation: 0 } },
+          yVol: { position: 'right', grid: { color: c.grid }, border: { color: 'transparent' }, 
+            ticks: {
+              color: c.tick, font: 
+              { family: 'JetBrains Mono', size: 10 }, 
+              callback: (v: number) => this.activePeriod === '1D' ? v.toFixed(3) + ' hm³': + v.toFixed(0) + ' hm³'  } },
+          yPct: { position: 'left', grid: { display: false }, border: { color: 'transparent' }, 
+            ticks: { 
+                color: c.tick, font: {family: 'JetBrains Mono', size: 10 }, 
+              callback: (v: number) => this.activePeriod === '1D' ? v.toFixed(2) + '%' : v.toFixed(1) + '%' } }
         }
       }
     });
@@ -279,7 +286,20 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   setPeriod(period: string) { 
     this.activePeriod = period; 
-    this.calcularVariacionDiaria;
+
+    if (this.chart) {
+    const is1D = period === '1D';
+    
+    this.chart.options.scales['yVol'].ticks.stepSize = is1D ? 0.05 : undefined;
+    this.chart.options.scales['yVol'].ticks.callback = (v: number) => 
+      is1D ? v.toFixed(3) + ' hm³' : v.toFixed(0) + ' hm³';
+
+    this.chart.options.scales['yPct'].ticks.stepSize = is1D ? 0.005 : undefined;
+    this.chart.options.scales['yPct'].ticks.callback = (v: number) => 
+      is1D ? v.toFixed(2) + '%' : v.toFixed(1) + '%';
+  }
+
+
     this.updateChart(); 
   }
   
