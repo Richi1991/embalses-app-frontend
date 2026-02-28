@@ -245,34 +245,12 @@ ion-content.dash-content {
    ============================================================ */
 .dash-body {
   padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  grid-template-rows: auto auto auto auto;
+  display: flex;          // cambia grid por flex
+  flex-direction: column; // todo en columna
   gap: 14px;
   max-width: 1400px;
   margin: 0 auto;
 }
-
-.hero-kpi {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.period-bar {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.chart-card {
-  grid-column: 1;
-  grid-row: 3;
-}
-
-.right-col {
-  grid-column: 2;
-  grid-row: 1 / 4;
-}
-
 
 /* ============================================================
    MÓVIL

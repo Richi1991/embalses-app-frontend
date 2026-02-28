@@ -150,7 +150,7 @@
         </ng-container>
 
         <ng-container *ngIf="activeTab === 'todos'">
-          <div class="mover-item" *ngFor="let e of embalses.slice(0,8)" (click)="goToEmbalse(e.idEmbalse)">
+          <div class="mover-item" *ngFor="let e of embalses" (click)="goToEmbalse(e.idEmbalse)">
             <div class="list-indicator" [style.background]="getPctColor(e.porcentaje)"></div>
             <div class="mover-info">
               <div class="mover-name">{{ e.nombre }}</div>

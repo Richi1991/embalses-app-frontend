@@ -312,10 +312,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getPctColor(pct: number): string {
-    if (pct >= 60) return '#0099ff';
-    if (pct >= 40) return '#00d4aa';
-    if (pct >= 25) return '#ffd60a';
-    return '#ff4d6d';
+    if (pct >= 50) return '#0099ff';
+    if (pct < 50 && pct >= 25) return '#00d4aa';
+    if (pct < 25 && pct >= 15) return '#ffd60a';
+    if (pct < 15) return '#ff4d6d';
+    return '#000000';
   }
 
   goToMapa() { this.router.navigate(['/mapa']); }
