@@ -41,7 +41,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   loadError = false;
   loadingMsg = 'Conectando con el servidor...';
-  
+
   periods = [
     { label: '1D', value: 1 },
     { label: '1S', value: 7 },
@@ -92,7 +92,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   calcularVariacionDiaria(): void {
-    
+
     const hoy = new Date().toISOString().split('T')[0];
 
     const datosHoy = this.historicoDiario.filter(e =>
@@ -100,7 +100,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     );
 
     const primero = datosHoy[0]?.volumenTotal ?? 0;
-    const ultimo  = datosHoy.at(-1)?.volumenTotal ?? 0;
+    const ultimo = datosHoy.at(-1)?.volumenTotal ?? 0;
     this.variacionDiaria = +(ultimo - primero).toFixed(3);
   }
 
@@ -176,9 +176,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     const periodosMeses = ['1M', '3M', '6M'];
     // periodos largos: 1A, 2A, 5A, 10A → mostrar año
 
-    if (periodosDias.includes(periodo)) {
+    if (periodo === '1D') {
       return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    } else if (periodosMeses.includes(periodo)) {
+    } else if (['1S', '7D', '1M', '3M', '6M'].includes(periodo)) {
       return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
     } else {
       return d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
@@ -235,15 +235,21 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         },
         scales: {
           x: { grid: { color: c.grid }, border: { color: c.border }, ticks: { color: c.tick, font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 12, maxRotation: 0 } },
-          yVol: { position: 'right', grid: { color: c.grid }, border: { color: 'transparent' }, 
+          yVol: {
+            position: 'right', grid: { color: c.grid }, border: { color: 'transparent' },
             ticks: {
-              color: c.tick, font: 
-              { family: 'JetBrains Mono', size: 10 }, 
-              callback: (v: number) => this.activePeriod === '1D' ? v.toFixed(3) + ' hm³': + v.toFixed(0) + ' hm³'  } },
-          yPct: { position: 'left', grid: { display: false }, border: { color: 'transparent' }, 
-            ticks: { 
-                color: c.tick, font: {family: 'JetBrains Mono', size: 10 }, 
-              callback: (v: number) => this.activePeriod === '1D' ? v.toFixed(2) + '%' : v.toFixed(1) + '%' } }
+              color: c.tick, font:
+                { family: 'JetBrains Mono', size: 10 },
+              callback: (v: number) => this.activePeriod === '1D' ? v.toFixed(2) + ' hm³' : + v.toFixed(0) + ' hm³'
+            }
+          },
+          yPct: {
+            position: 'left', grid: { display: false }, border: { color: 'transparent' },
+            ticks: {
+              color: c.tick, font: { family: 'JetBrains Mono', size: 10 },
+              callback: (v: number) => this.activePeriod === '1D' ? v.toFixed(2) + '%' : v.toFixed(1) + '%'
+            }
+          }
         }
       }
     });
@@ -275,7 +281,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   private filterHistorico(): HistoricoCuenca[] {
     const now = new Date();
-    const days: Record<string, number> = { '1D': 1, '7D': 7, '1M': 30, '3M': 90, '6M': 180, '1A': 365, '2A': 730, '5A': 1825, '10A': 3650 };
+    const days: Record<string, number> = { '1D': 1, '1S': 7, '7D': 7, '1M': 30, '3M': 90, '6M': 180, '1A': 365, '2A': 730, '5A': 1825, '10A': 3650 };
     const from = new Date(now.getTime() - (days[this.activePeriod] || 90) * 86400000);
     if (this.activePeriod === '1D') {
       return this.historicoDiario.filter(h => new Date(h.fechaRegistro) >= from);
@@ -284,25 +290,26 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  setPeriod(period: string) { 
-    this.activePeriod = period; 
+  setPeriod(period: string) {
+    this.activePeriod = period;
 
-    if (this.chart) {
-    const is1D = period === '1D';
-    
-    this.chart.options.scales['yVol'].ticks.stepSize = is1D ? 0.05 : undefined;
-    this.chart.options.scales['yVol'].ticks.callback = (v: number) => 
-      is1D ? v.toFixed(3) + ' hm³' : v.toFixed(0) + ' hm³';
+    if (this.chart && period === '1D') {
+      const is1D = period === '1D';
 
-    this.chart.options.scales['yPct'].ticks.stepSize = is1D ? 0.005 : undefined;
-    this.chart.options.scales['yPct'].ticks.callback = (v: number) => 
-      is1D ? v.toFixed(2) + '%' : v.toFixed(1) + '%';
+      this.chart.options.scales['yVol'].ticks.maxTicksLimit = is1D ? 10 : undefined;
+      this.chart.options.scales['yVol'].ticks.stepSize = is1D ? 0.05 : undefined;
+      this.chart.options.scales['yPct'].ticks.maxTicksLimit = is1D ? 10 : undefined;
+      this.chart.options.scales['yPct'].ticks.stepSize = is1D ? 0.005 : undefined;
+    }
+
+    if (this.chart && period === '7D') {
+        this.chart.options.scales['x'].ticks.maxTicksLimit = 7;
+    }
+
+
+    this.updateChart();
   }
 
-
-    this.updateChart(); 
-  }
-  
   getPctColor(pct: number): string {
     if (pct >= 60) return '#0099ff';
     if (pct >= 40) return '#00d4aa';
