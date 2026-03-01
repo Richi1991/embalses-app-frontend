@@ -1,30 +1,5 @@
 <ion-content [fullscreen]="true" class="dash-content" [class.light-mode]="lightMode" scrollX="false" scrollY="true">
 
-  <!-- NAV — siempre visible -->
-  <div class="dash-nav">
-    <div class="nav-left">
-      <div class="nav-dot"></div>
-      <div>
-        <div class="nav-brand">Embalses CHS</div>
-        <div class="nav-date">{{ currentDate }}</div>
-      </div>
-    </div>
-    <div class="nav-right">
-      <span class="live-badge"><span class="live-dot"></span>EN VIVO</span>
-      <span class="clock">{{ currentTime }}</span>
-
-      <button class="theme-btn" (click)="toggleTheme()" [title]="lightMode ? 'Modo oscuro' : 'Modo claro'">
-        <span class="theme-icon">{{ lightMode ? '🌙' : '☀️' }}</span>
-      </button>
-
-      <button class="map-btn" (click)="goToMapa()">
-        <ion-icon name="map-outline"></ion-icon>
-        <span>Ver Mapa</span>
-        <span class="map-btn-badge">↗</span>
-      </button>
-    </div>
-  </div>
-
   <!-- ESTADO DE CARGA -->
   <div class="dash-loading" *ngIf="loading">
     <div class="dash-spinner"></div>
@@ -44,7 +19,10 @@
 
     <!-- HERO KPI -->
     <div class="hero-kpi">
-      <div class="kpi-label">Volumen Total Embalsado</div>
+      <button class="theme-btn" (click)="toggleTheme()" style="position:absolute; top:16px; right:16px;">
+        <span class="theme-icon">{{ lightMode ? '🌙' : '☀️' }}</span>
+      </button>
+      <div class="kpi-label">Estadisticas Cuenca del Segura</div>
       <div class="kpi-main">
         <div class="kpi-value">
           {{ totalVol | number:'1.0-0' }}<span class="kpi-decimal">.{{ (totalVol % 1 * 100 | number:'2.0-0') }}</span>
@@ -101,10 +79,8 @@
     <div class="period-bar">
       <span class="period-bar-label">Período</span>
       <div class="period-selector">
-        <button *ngFor="let p of ['1D','7D','1M','3M','6M','1A','2A','5A','10A']"
-          class="period-btn"
-          [class.active]="activePeriod === p"
-          (click)="setPeriod(p)">{{ p }}</button>
+        <button *ngFor="let p of ['1D','7D','1M','3M','6M','1A','2A','5A','10A']" class="period-btn"
+          [class.active]="activePeriod === p" (click)="setPeriod(p)">{{ p }}</button>
       </div>
     </div>
 
@@ -131,7 +107,9 @@
             <div class="mover-info">
               <div class="mover-name">{{ e.nombre }}</div>
               <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} hm³ · {{ e.porcentaje | number:'1.1-1' }}%</div>
-              <div class="mini-bar"><div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#00d4aa"></div></div>
+              <div class="mini-bar">
+                <div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#00d4aa"></div>
+              </div>
             </div>
             <div class="mover-delta up">+{{ e.variacion | number:'1.2-2' }}</div>
           </div>
@@ -143,7 +121,9 @@
             <div class="mover-info">
               <div class="mover-name">{{ e.nombre }}</div>
               <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} hm³ · {{ e.porcentaje | number:'1.1-1' }}%</div>
-              <div class="mini-bar"><div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#ff4d6d"></div></div>
+              <div class="mini-bar">
+                <div class="mini-bar-fill" [style.width.%]="e.porcentaje" style="background:#ff4d6d"></div>
+              </div>
             </div>
             <div class="mover-delta down">{{ e.variacion | number:'1.2-2' }}</div>
           </div>
@@ -156,7 +136,8 @@
               <div class="mover-name">{{ e.nombre }}</div>
               <div class="mover-sub">{{ e.hm3 | number:'1.1-1' }} / {{ e.capacidadMaximaEmbalse }} hm³</div>
             </div>
-            <div class="mover-delta" [style.color]="getPctColor(e.porcentaje)">{{ e.porcentaje | number:'1.1-1' }}%</div>
+            <div class="mover-delta" [style.color]="getPctColor(e.porcentaje)">{{ e.porcentaje | number:'1.1-1' }}%
+            </div>
           </div>
         </ng-container>
       </div>

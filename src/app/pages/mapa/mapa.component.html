@@ -1,296 +1,67 @@
 <ion-content [fullscreen]="true" class="mapa-content" scrollX="false" scrollY="false">
 
-  <!-- NAV -->
-  <div class="map-nav">
-    <div class="nav-left">
+  <div class="map-wrapper">
+    
+    <div id="map"></div>
+
+    <div class="map-ui-overlay">
+      
+      <div class="map-layer-buttons">
+        <button class="layer-pill" [class.active]="layers.embalses" (click)="toggleLayer('embalses')">
+          Embalses
+        </button>
+        <button class="layer-pill" [class.active]="layers.estaciones" (click)="toggleLayer('estaciones')">
+          Estaciones
+        </button>
+        <button class="layer-pill" [class.active]="layers.cauces" (click)="toggleLayer('cauces')">
+          Caudales
+        </button>
+      </div>
 
       <button class="theme-btn" (click)="toggleTheme()" [title]="lightMode ? 'Modo oscuro' : 'Modo claro'">
         <span class="theme-icon">{{ lightMode ? '🌙' : '☀️' }}</span>
       </button>
 
-      <button class="back-btn" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </button>
-      <div class="nav-dot"></div>
-      <span class="nav-brand">Cuenca del Segura</span>
+      <div class="map-stats" [class.panel-open]="panelOpen">
+        <ng-container *ngIf="activeTab === 'embalses' || !layers.estaciones">
+          <div class="stat-pill">
+            <span class="stat-label">Vol. Total</span>
+            <span class="stat-value green">{{ totalVol | number:'1.1-1' }} hm³</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">Capacidad</span>
+            <span class="stat-value">{{ totalPct | number:'1.2-2' }}%</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">Embalses</span>
+            <span class="stat-value blue">{{ embalses.length }}</span>
+          </div>
+        </ng-container>
 
-      <div class="layer-toggles">
-        <button class="layer-btn" [class.active]="layers.embalses" [class.embalses]="layers.embalses"
-          (click)="toggleLayer('embalses')">
-          <span class="dot dot-green"></span>Embalses
-        </button>
-        <button class="layer-btn" [class.active]="layers.estaciones" [class.estaciones]="layers.estaciones"
-          (click)="toggleLayer('estaciones')">
-          <span class="dot dot-blue"></span>Estaciones
-          <span class="layer-count" *ngIf="estacionesLoaded">{{ estaciones.length }}</span>
-          <span class="layer-loading" *ngIf="loadingEstaciones">⟳</span>
-        </button>
-        <button class="layer-btn" [class.active]="layers.cauces" [class.cauces]="layers.cauces"
-          (click)="toggleLayer('cauces')">
-          <span class="dot dot-yellow"></span>Cauces
-        </button>
+        <ng-container *ngIf="activeTab === 'estaciones' && layers.estaciones && estacionesLoaded">
+          <div class="stat-pill">
+            <span class="stat-label">Estaciones</span>
+            <span class="stat-value blue">{{ estaciones.length }}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">Con lluvia 24h</span>
+            <span class="stat-value" style="color:#0099ff">
+              {{ estacionesConLluvia }}
+            </span>
+          </div>
+        </ng-container>
       </div>
-    </div>
-    <div class="nav-right">
-      <span class="live-badge"><span class="live-dot"></span>EN VIVO</span>
-      <span class="clock">{{ currentTime }}</span>
-    </div>
-  </div>
 
-  <!-- CONTENEDOR PRINCIPAL -->
-  <div class="map-wrapper">
-    <!-- MAPA -->
-    <div id="map"></div>
-
-    <!-- MINI STATS -->
-    <div class="map-stats" [class.panel-open]="panelOpen">
-      <ng-container *ngIf="activeTab === 'embalses' || !layers.estaciones">
-        <div class="stat-pill">
-          <span class="stat-label">Vol. Total</span>
-          <span class="stat-value green">{{ totalVol | number:'1.1-1' }} hm³</span>
-        </div>
-        <div class="stat-pill">
-          <span class="stat-label">Capacidad</span>
-          <span class="stat-value">{{ totalPct | number:'1.2-2' }}%</span>
-        </div>
-        <div class="stat-pill">
-          <span class="stat-label">Embalses</span>
-          <span class="stat-value blue">{{ embalses.length }}</span>
-        </div>
-      </ng-container>
-      <ng-container *ngIf="activeTab === 'estaciones' && layers.estaciones && estacionesLoaded">
-        <div class="stat-pill">
-          <span class="stat-label">Estaciones</span>
-          <span class="stat-value blue">{{ estaciones.length }}</span>
-        </div>
-        <div class="stat-pill">
-          <span class="stat-label">Con lluvia 24h</span>
-          <span class="stat-value" style="color:#0099ff">
-            {{ estacionesConLluvia }}
-          </span>
-        </div>
-      </ng-container>
-    </div>
-
-    <div class="period-bar" *ngIf="layers.estaciones && activeTab === 'estaciones'">
-      <span class="period-bar-label">Período</span>
-      <div class="period-selector">
-        <button *ngFor="let p of periods" [class.active]="activePeriod === p.value" class="period-btn"
-          (click)="cargarEstacionesDesdeBotoneraTiempo(p.value)">{{ p.label }}</button>
-      </div>
-    </div>
-
-    <!--<div class="color-scale" *ngIf="layers.estaciones && activeTab === 'estaciones'">
-      <div class="scale-title">mm</div>
-      <div class="scale-item" *ngFor="let item of colorScale">
-        <span class="scale-color" [style.background]="item.color" [style.box-shadow]="'0 0 6px ' + item.color"></span>
-        <span class="scale-label">{{ item.label }}</span>
-      </div>
-    </div> -->
-
-
-    <!-- SIDE PANEL -->
-    <div class="side-panel" [class.collapsed]="!panelOpen">
-
-      <button class="panel-toggle" (click)="togglePanel()">
-        {{ panelOpen ? '▾' : '▴' }}
-      </button>
-
-      <div class="panel-header">
-        <div class="panel-header-row">
-          <span class="panel-title">Panel de control</span>
-          <span class="panel-date">{{ today }}</span>
-        </div>
-
-        <div class="panel-search">
-          <span class="search-icon">⌕</span>
-          <input type="text"
-            [placeholder]="activeTab === 'estaciones' ? 'Buscar estación o provincia...' : 'Buscar embalse...'"
-            [(ngModel)]="searchQuery" (input)="onSearch()">
-        </div>
-
-        <div class="panel-tabs">
-          <button class="ptab" [class.active]="activeTab==='embalses'" (click)="setTab('embalses')">
-            Embalses
-          </button>
-          <button class="ptab" [class.active]="activeTab==='estaciones'" (click)="setTab('estaciones')">
-            Estaciones
-            <span class="ptab-badge" *ngIf="loadingEstaciones">⟳</span>
+      <div class="period-bar" *ngIf="layers.estaciones && activeTab === 'estaciones'">
+        <span class="period-bar-label">Período</span>
+        <div class="period-selector">
+          <button *ngFor="let p of periods" 
+                  [class.active]="activePeriod === p.value" 
+                  class="period-btn"
+                  (click)="cargarEstacionesDesdeBotoneraTiempo(p.value)">
+            {{ p.label }}
           </button>
         </div>
       </div>
 
-      <div class="panel-body">
-
-        <!-- ══════════════════════════════════════
-             TAB EMBALSES
-             ══════════════════════════════════════ -->
-        <ng-container *ngIf="activeTab === 'embalses'">
-
-          <!-- Detail embalse -->
-          <div class="detail-view" *ngIf="selectedEmbalse">
-            <div class="detail-header">
-              <div class="detail-name">{{ selectedEmbalse.nombre }}</div>
-              <button class="detail-close" (click)="closeDetail()">✕</button>
-            </div>
-            <div class="detail-kpis">
-              <div class="dkpi">
-                <div class="dkpi-label">Volumen</div>
-                <div class="dkpi-value green">{{ selectedEmbalse.hm3 | number:'1.2-2' }} hm³</div>
-              </div>
-              <div class="dkpi">
-                <div class="dkpi-label">Porcentaje</div>
-                <div class="dkpi-value blue">{{ selectedEmbalse.porcentaje | number:'1.1-1' }}%</div>
-              </div>
-              <div class="dkpi">
-                <div class="dkpi-label">Variación 24h</div>
-                <div class="dkpi-value" [class.positive]="selectedEmbalse.variacion >= 0"
-                  [class.negative]="selectedEmbalse.variacion < 0">
-                  {{ selectedEmbalse.variacion > 0 ? '+' : '' }}{{ selectedEmbalse.variacion | number:'1.2-2' }} hm³
-                </div>
-              </div>
-              <div class="dkpi">
-                <div class="dkpi-label">Capacidad</div>
-                <div class="dkpi-value muted">{{ selectedEmbalse.capacidadMaximaEmbalse | number:'1.1-1' }} hm³</div>
-              </div>
-            </div>
-            <div class="detail-bar-wrap">
-              <div class="detail-bar-label">
-                <span>0 hm³</span>
-                <span class="accent">{{ selectedEmbalse.porcentaje | number:'1.1-1' }}% LLENO</span>
-                <span>{{ selectedEmbalse.capacidadMaximaEmbalse }} hm³</span>
-              </div>
-              <div class="detail-bar">
-                <div class="detail-bar-fill" [style.width.%]="selectedEmbalse.porcentaje"
-                  [style.background]="getPctColor(selectedEmbalse.porcentaje)">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Lista embalses -->
-          <div class="list-view" *ngIf="!selectedEmbalse">
-            <div class="list-item" *ngFor="let e of filteredEmbalses" (click)="openDetail(e)">
-              <div class="list-indicator" [style.background]="getPctColor(e.porcentaje)"></div>
-              <div class="list-info">
-                <div class="list-name">{{ e.nombre }}</div>
-                <div class="list-sub">{{ e.hm3 | number:'1.1-1' }} / {{ e.capacidadMaximaEmbalse }} hm³</div>
-              </div>
-              <div class="list-pct" [style.color]="getPctColor(e.porcentaje)">
-                {{ e.porcentaje | number:'1.1-1' }}%
-              </div>
-              <div class="list-delta" [class.positive]="e.variacion >= 0" [class.negative]="e.variacion < 0">
-                {{ e.variacion > 0 ? '+' : '' }}{{ e.variacion | number:'1.2-2' }}
-              </div>
-            </div>
-          </div>
-
-        </ng-container>
-
-        <!-- ══════════════════════════════════════
-             TAB ESTACIONES
-             ══════════════════════════════════════ -->
-        <ng-container *ngIf="activeTab === 'estaciones'">
-
-          <!-- Loading -->
-          <div class="estaciones-loading" *ngIf="loadingEstaciones">
-            <div class="loading-spinner"></div>
-            <span>Cargando estaciones...</span>
-          </div>
-
-          <!-- Detail estacion -->
-          <div class="detail-view" *ngIf="selectedEstacion && !loadingEstaciones">
-            <div class="detail-header">
-              <div>
-                <div class="detail-name">{{ selectedEstacion.nombre }}</div>
-                <div class="detail-sub">{{ selectedEstacion.provincia }} · {{ selectedEstacion.altitud }} m</div>
-              </div>
-              <button class="detail-close" (click)="closeDetail()">✕</button>
-            </div>
-
-            <div class="precip-grid">
-              <div class="precip-card">
-                <div class="precip-label">1 hora</div>
-                <div class="precip-value"
-                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_1h ?? 0, 'ULTIMO_DIA')">
-                  {{ selectedEstacion.precipitacion_1h | number:'1.1-1' }}
-                </div>
-                <div class="precip-unit">mm</div>
-              </div>
-              <div class="precip-card">
-                <div class="precip-label">3 horas</div>
-                <div class="precip-value"
-                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_3h ?? 0, 'ULTIMO_DIA')">
-                  {{ selectedEstacion.precipitacion_3h | number:'1.1-1' }}
-                </div>
-                <div class="precip-unit">mm</div>
-              </div>
-              <div class="precip-card">
-                <div class="precip-label">6 horas</div>
-                <div class="precip-value"
-                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_6h ?? 0, 'ULTIMO_DIA')">
-                  {{ selectedEstacion.precipitacion_6h | number:'1.1-1' }}
-                </div>
-                <div class="precip-unit">mm</div>
-              </div>
-              <div class="precip-card">
-                <div class="precip-label">12 horas</div>
-                <div class="precip-value"
-                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_12h ?? 0, 'ULTIMO_DIA')">
-                  {{ selectedEstacion.precipitacion_12h | number:'1.1-1' }}
-                </div>
-                <div class="precip-unit">mm</div>
-              </div>
-              <div class="precip-card highlight">
-                <div class="precip-label">24 horas</div>
-                <div class="precip-value"
-                  [style.color]="getPrecipitationColorHistorico(selectedEstacion.precipitacion_24h ?? 0, 'ULTIMO_DIA')">
-                  {{ selectedEstacion.precipitacion_24h | number:'1.1-1' }}
-                </div>
-                <div class="precip-unit">mm</div>
-              </div>
-              <div class="precip-card highlight">
-                <div class="precip-label">Año en curso</div>
-                <div class="precip-value blue">
-                  {{ selectedEstacion.precipitacionYtd | number:'1.0-0' }}
-                </div>
-                <div class="precip-unit">mm</div>
-              </div>
-            </div>
-
-            <div class="detail-meta">
-              <span class="meta-item"><span class="meta-key">INDICATIVO</span> {{ selectedEstacion.indicativo }}</span>
-              <span class="meta-item"><span class="meta-key">RED</span> {{ selectedEstacion.redOrigen }}</span>
-            </div>
-          </div>
-
-          <!-- Lista estaciones -->
-          <div class="list-view" *ngIf="!selectedEstacion && !loadingEstaciones">
-            <div class="list-item estacion-item" *ngFor="let e of filteredEstaciones" (click)="openDetailEstacion(e)">
-              <div class="list-indicator-round"
-                [style.background]="getPrecipitationColorHistorico(e.precipitacion_24h ?? 0, 'ULTIMO_DIA')">
-              </div>
-              <div class="list-info">
-                <div class="list-name">{{ e.nombre }}</div>
-                <div class="list-sub">{{ e.provincia }} · {{ e.altitud }} m</div>
-              </div>
-              <div class="estacion-precip">
-                <div class="estacion-precip-value"
-                  [style.color]="getPrecipitationColorHistorico(e.precipitacion_24h ?? 0, 'ULTIMO_DIA')">
-                  {{ (e.precipitacion_24h ?? 0) | number:'1.1-1' }}
-                </div>
-                <div class="estacion-precip-unit">mm/24h</div>
-              </div>
-            </div>
-            <div class="list-empty" *ngIf="filteredEstaciones.length === 0 && !loadingEstaciones">
-              No se encontraron estaciones
-            </div>
-          </div>
-
-        </ng-container>
-
-      </div>
-    </div>
-  </div>
-
-</ion-content>
+    </div> </div> </ion-content>

@@ -159,10 +159,10 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map = L.map('map', { center: [38.1, -1.5], zoom: 9, zoomControl: true, attributionControl: false });
 
     // dark_nolabels: sin cuadrícula de líneas blancas, fondo muy oscuro con detalle
-    const darkTile = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+    const darkTile = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
     const lightTile = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
-    this.tileLayer = L.tileLayer(this.lightMode ? lightTile : darkTile, { maxZoom: 18 }).addTo(this.map);
+    this.tileLayer = L.tileLayer(this.lightMode ? lightTile : darkTile, { attribution: '© CartoDB', maxZoom: 18 }).addTo(this.map);
 
     this.embalseLayer = L.layerGroup();
     this.estacionLayer = L.layerGroup();
@@ -472,7 +472,8 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     localStorage.setItem('mapa-theme', this.lightMode ? 'light' : 'dark');
 
     // Swap tile layer
-    const darkTile = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+
+    const darkTile = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
     const lightTile = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
     this.tileLayer.setUrl(this.lightMode ? lightTile : darkTile);
 

@@ -1,0 +1,29 @@
+:host {
+  --accent: #00d4aa;
+}
+
+ion-tab-bar {
+  --background: #0d1420;
+  --border: rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 4px 0;
+}
+
+ion-tab-button {
+  --color: #6b7a90;
+  --color-selected: #00d4aa;
+  --ripple-color: transparent;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  ion-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  &.tab-selected ion-icon {
+    filter: drop-shadow(0 0 6px rgba(0, 212, 170, 0.5));
+  }
+}
