@@ -1,0 +1,139 @@
+:host {
+    --accent: #00d4aa;
+    --accent2: #0099ff;
+    --bg: #080c12;
+    --bg2: #0d1420;
+    --bg3: #111a27;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-bright: rgba(255, 255, 255, 0.12);
+    --text: #e8edf5;
+    --muted: #ffffff;
+    --muted2: #ffffff;
+}
+
+ion-content {
+    --background: var(--bg);
+}
+
+.dash-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.period-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 16px;
+}
+
+.period-bar-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.period-selector {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    overflow-x: auto;
+}
+
+.period-btn {
+    background: none;
+    border: none;
+    color: var(--muted2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &.active {
+        background: var(--accent);
+        color: #080c12;
+        font-weight: 700;
+    }
+
+    &:hover:not(.active) {
+        color: var(--text);
+        background: var(--bg3);
+    }
+}
+
+.chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 28px;
+}
+
+.chart-wrapper {
+    height: 250px; // altura fija
+    position: relative;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.chart-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    font-weight: 700;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 250px;
+}
+
+/* ============================================================
+   MÓVIL
+   ============================================================ */
+@media (max-width: 768px) {
+
+    .dash-body {
+        padding: 12px;
+        display: flex;
+        /* Cambiamos a Flex para un scroll más natural en móvil */
+        flex-direction: column;
+        gap: 12px;
+        max-width: 1400px;
+        margin: 0 auto;
+        overflow-y: visible;
+        /* Permitimos que el contenido crezca */
+    }
+
+    .period-bar,
+    .chart-card,
+
+    .period-bar {
+        border-radius: 12px;
+        padding: 8px 12px;
+    }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dash-body {
+        grid-template-columns: 1fr 280px;
+    }
+}

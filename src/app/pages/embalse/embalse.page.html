@@ -1,13 +1,25 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>embalse</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">embalse</ion-title>
-    </ion-toolbar>
-  </ion-header>
+
+  <div class="dash-body">
+    <!-- PERIOD SELECTOR -->
+    <div class="period-bar">
+      <span class="period-bar-label">Período</span>
+      <div class="period-selector">
+        <button *ngFor="let p of ['1D','7D','1M','3M','6M','1A','2A','5A','10A']" class="period-btn"
+          [class.active]="activePeriod === p" (click)="setPeriod(p)">{{ p }}</button>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Volumen Embalse {{nombreEmbalse}} desde hace {{activePeriod}}</span>
+      </div>
+      <div class="chart-wrapper">
+        <canvas #chartCanvas></canvas>
+      </div>
+    </div>
+
+
+  </div>
 </ion-content>

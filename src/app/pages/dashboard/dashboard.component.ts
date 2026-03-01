@@ -320,7 +320,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goToMapa() { this.router.navigate(['/mapa']); }
-  goToEmbalse(id: number) { 
-    this.router.navigate(['/embalse', id]); 
+  goToEmbalse(idEmbalse: number) { 
+    this.router.navigate(['/embalse', idEmbalse]); 
   }
 }

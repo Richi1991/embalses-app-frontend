@@ -67,6 +67,8 @@ export class EmbalseService {
 
   getHistoricoEmbalse(idEmbalse: number): Observable<Embalse[]> {
     const url = `${this.apiUrlHistoricoEmbalse}${idEmbalse}`;
+      console.log('URL llamada:', url);  // 👈 añade esto para ver la URL exacta
+
     return this.http.get<Embalse[]>(url);
   }
 
