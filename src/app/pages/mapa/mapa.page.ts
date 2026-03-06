@@ -4,7 +4,6 @@ import {
   NgZone, ChangeDetectorRef, HostBinding
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { interval, Subscription } from 'rxjs';
 import { EmbalseService, Embalse } from '../../services/embalse.service';
 import { EstacionesService, Estacion, PrecipitacionAcumulada } from '../../services/estaciones.service';
 import { CommonModule } from '@angular/common';
@@ -13,15 +12,16 @@ import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { mapOutline, arrowBackOutline } from 'ionicons/icons';
 import * as L from 'leaflet';
+import { CaudalComponent } from './caudal/caudal.component';
 
 @Component({
   selector: 'app-mapa',
-  templateUrl: './mapa.component.html',
-  styleUrls: ['./mapa.component.scss'],
+  templateUrl: './mapa.page.html',
+  styleUrls: ['./mapa.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule]
+  imports: [CommonModule, FormsModule, IonicModule, CaudalComponent]
 })
-export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
@@ -31,12 +31,14 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   private tileLayer!: L.TileLayer;
 
   // Map
-  private map!: L.Map;
+  map!: L.Map;
   private embalseMarkers: Map<number, L.Marker> = new Map();
   private estacionMarkersList: L.Marker[] = [];
   private embalseLayer!: L.LayerGroup;
+  
   private estacionLayer!: L.LayerGroup;
   private precipitacionAcumulada: PrecipitacionAcumulada[] = [];
+  public mostrarCaudales = false;
 
   // State — embalses
   embalses: Embalse[] = [];
@@ -45,6 +47,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // State — estaciones
   estaciones: Estacion[] = [];
+  
   filteredEstaciones: Estacion[] = [];
   selectedEstacion: Estacion | null = null;
   loadingEstaciones = false;
@@ -56,7 +59,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   searchQuery = '';
   currentTime = '';
   today = '';
-  layers = { embalses: true, estaciones: false, cauces: false };
+  layers = { embalses: true, estaciones: false, caudales: false };
 
   periods = [
     { label: '1D', value: 'ULTIMO_DIA' },
@@ -72,8 +75,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   totalVol = 0;
   totalPct = 0;
 
-  private clockSub!: Subscription;
-
   constructor(
     private embalseService: EmbalseService,
     private estacionesService: EstacionesService,
@@ -86,7 +87,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.startClock();
     this.loadEmbalses();
   }
 
@@ -95,21 +95,7 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.clockSub?.unsubscribe();
     if (this.map) this.map.remove();
-  }
-
-  // ── CLOCK ──────────────────────────────────────────────────
-  private startClock() {
-    this.updateTime();
-    this.clockSub = interval(1000).subscribe(() => this.updateTime());
-  }
-
-  private updateTime() {
-    const now = new Date();
-    const p = (n: number) => String(n).padStart(2, '0');
-    this.currentTime = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
-    this.today = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
   }
 
   // ── DATA ───────────────────────────────────────────────────
@@ -352,27 +338,6 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
     return '#b9b9b9'; // Si no llega al mínimo
   }
 
-  /**get colorScale() {
-    const { escalas, colores }: { escalas: Record<string, number[]>; colores: string[]; } = this.obtenerEscalasAndColores();
-    const u = escalas[this.activePeriod];
-
-    return [
-      { color: colores[0], label: `> ${u[0]}` },
-      { color: colores[1], label: `> ${u[1]}` },
-      { color: colores[2], label: `> ${u[2]}` },
-      { color: colores[3], label: `> ${u[3]}` },
-      { color: colores[4], label: `> ${u[4]}` },
-      { color: colores[5], label: `> ${u[5]}` },
-      { color: colores[6], label: `> ${u[6]}` },
-      { color: colores[7], label: `> ${u[7]}` },
-      { color: colores[8], label: `> ${u[8]}` },
-      { color: colores[9], label: `> ${u[9]}` },
-      { color: colores[10], label: `> ${u[10]}` },
-      { color: colores[11], label: `> ${u[11]}` },
-    ];
-  }**/
-
-
   private obtenerEscalasAndColores() {
     const escalas: Record<string, number[]> = {
       "ULTIMO_DIA": [100, 80, 70, 60, 50, 40, 30, 20, 10, 5, 1, 0.1, 0],
@@ -444,26 +409,31 @@ export class MapaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   togglePanel() { this.panelOpen = !this.panelOpen; }
 
-  toggleLayer(layer: 'embalses' | 'estaciones' | 'cauces') {
+  toggleLayer(layer: 'embalses' | 'estaciones' | 'caudales') {
     this.layers[layer] = !this.layers[layer];
 
-    if (layer === 'embalses') {
-      this.layers.embalses
-        ? this.map.addLayer(this.embalseLayer)
-        : this.map.removeLayer(this.embalseLayer);
-    }
-
-    if (layer === 'estaciones') {
-      if (this.layers.estaciones) {
-        if (!this.estacionesLoaded) {
-          this.loadEstaciones();
+    switch (layer) {
+      case 'embalses':
+        this.layers.embalses
+          ? this.map.addLayer(this.embalseLayer)
+          : this.map.removeLayer(this.embalseLayer);
+          break;
+      case 'estaciones':
+        if (this.layers.estaciones) {
+          if (!this.estacionesLoaded) {
+            this.loadEstaciones();
+          } else {
+            this.map.addLayer(this.estacionLayer);
+          }
+          this.activeTab = 'estaciones';
         } else {
-          this.map.addLayer(this.estacionLayer);
+          this.map.removeLayer(this.estacionLayer);
         }
-        this.activeTab = 'estaciones';
-      } else {
-        this.map.removeLayer(this.estacionLayer);
-      }
+        break;
+      case 'caudales':
+        if (this.layers.caudales){
+          this.mostrarCaudales = true;
+        }
     }
   }
 

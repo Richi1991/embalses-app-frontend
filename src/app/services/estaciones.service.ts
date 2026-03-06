@@ -39,14 +39,6 @@ export interface PrecipitacionAcumulada {
   longitud: string;
 }
 
-export interface PrecipitacionMapa {
-  getRes_geometry: string;
-  getRes_indicativo: string;
-  getRes_nombre: string;
-  getRes_mm_acumulados: string;
-  getRes_tipo: string;
-}
-
 export const RangoTemporal = {
   ULTIMO_DIA: 'ULTIMO_DIA',
   ULTIMA_SEMANA: 'ULTIMA_SEMANA',
@@ -77,4 +69,6 @@ export class EstacionesService {
       const url = this.apiUrlObtenerValoresPrecipitacionesAcumulados;
       return this.http.get<PrecipitacionAcumulada[]>(`${url}/${RangoTemporal}`);
     }
+
+ 
 }

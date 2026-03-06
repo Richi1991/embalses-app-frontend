@@ -1,15 +1,19 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MapaComponent } from './mapa.component';
+import { IonicModule } from '@ionic/angular';
+import { MapaPage } from './mapa.page';
 import { MapaRoutingModule } from './mapa-routing.module';
+import { CaudalComponent } from './caudal/caudal.component';
 
 
 
 @NgModule({
   declarations: [],
   imports: [
+    MapaPage,
+    CaudalComponent,
     CommonModule,
-    MapaComponent,
+    IonicModule,
     MapaRoutingModule
   ]
 })

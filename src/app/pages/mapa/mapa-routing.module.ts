@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MapaComponent } from './mapa.component';
+import { MapaPage } from './mapa.page';
 
 const routes: Routes = [
-  { path: '', component: MapaComponent }
+  { path: '', component: MapaPage }
 ];
 
 @NgModule({

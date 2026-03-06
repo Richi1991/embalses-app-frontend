@@ -65,8 +65,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   lightMode = false;
 
   private chart: any;
-  private clockSub!: Subscription;
-
   constructor(
     private embalseService: EmbalseService,
     private router: Router,
@@ -78,11 +76,17 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     this.lightMode = localStorage.getItem('dashboard-theme') === 'light';
   }
 
-  ngOnInit() { this.startClock(); this.loadData(); }
+  ngOnInit() {
+     this.loadData(); 
+  }
 
-  ngAfterViewInit() { this.initChart() }
+  ngAfterViewInit() { 
+    this.initChart() 
+  }
 
-  ngOnDestroy() { this.clockSub?.unsubscribe(); if (this.chart) this.chart.destroy(); }
+  ngOnDestroy() {  
+    if (this.chart) this.chart.destroy(); 
+  }
 
   toggleTheme() {
     this.lightMode = !this.lightMode;
@@ -104,17 +108,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     this.variacionDiaria = +(ultimo - primero).toFixed(3);
   }
 
-  private startClock() {
-    this.updateTime();
-    this.clockSub = interval(1000).subscribe(() => this.updateTime());
-  }
-
-  private updateTime() {
-    const now = new Date();
-    const p = (n: number) => String(n).padStart(2, '0');
-    this.currentTime = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
-    this.currentDate = now.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
-  }
 
   private loadData() {
     forkJoin({

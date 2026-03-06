@@ -189,7 +189,7 @@ ion-content.mapa-content {
     color: var(--accent-blue);
   }
 
-  &.active.cauces {
+  &.active.caudales {
     border-color: rgba(255, 214, 10, 0.4);
     color: var(--accent-yellow);
   }
@@ -232,13 +232,6 @@ ion-content.mapa-content {
   border-radius: 50%;
   background: var(--accent-green);
   animation: blink 2s infinite;
-}
-
-.clock {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--text-secondary);
-  transition: color 0.3s;
 }
 
 /* ── THEME TOGGLE (ASEGURAR VISIBILIDAD) ── */
@@ -793,10 +786,6 @@ ion-content.mapa-content {
    ============================================================ */
 @media (max-width: 768px) {
   .nav-brand {
-    display: none;
-  }
-
-  .clock {
     display: none;
   }
 

@@ -13,10 +13,12 @@
         <button class="layer-pill" [class.active]="layers.estaciones" (click)="toggleLayer('estaciones')">
           Estaciones
         </button>
-        <button class="layer-pill" [class.active]="layers.cauces" (click)="toggleLayer('cauces')">
+        <button class="layer-pill" [class.active]="layers.caudales" (click)="mostrarCaudales = !mostrarCaudales">
           Caudales
         </button>
       </div>
+
+      <app-caudal *ngIf="mostrarCaudales" [mapa]="map"></app-caudal>
 
       <button class="theme-btn" (click)="toggleTheme()" [title]="lightMode ? 'Modo oscuro' : 'Modo claro'">
         <span class="theme-icon">{{ lightMode ? '🌙' : '☀️' }}</span>
