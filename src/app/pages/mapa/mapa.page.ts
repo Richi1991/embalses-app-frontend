@@ -433,6 +433,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       case 'caudales':
         if (this.layers.caudales){
           this.mostrarCaudales = true;
+        } else {
+          this.mostrarCaudales = false;
         }
     }
   }

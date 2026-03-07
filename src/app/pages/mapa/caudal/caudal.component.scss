@@ -1,0 +1,15 @@
+button {
+  background: transparent;
+  border: 1px solid #555;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+
+  &.active {
+    background: #22c55e;        /* verde */
+    border-color: #22c55e;
+    color: white;
+  }
+}

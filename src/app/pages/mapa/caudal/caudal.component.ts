@@ -1,9 +1,7 @@
 import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CaudalesService } from 'src/app/services/caudales.service';
 import { UltimaLecturaCaudalDTO } from '../../../services/caudales.service';
-import { Map, Marker } from 'leaflet';
 import * as L from 'leaflet';
-import { min } from 'rxjs';
 
 @Component({
   selector: 'app-caudal',
@@ -18,13 +16,17 @@ export class CaudalComponent implements OnInit {
   private caudalesLayer!: L.LayerGroup;
   caudales: UltimaLecturaCaudalDTO[] = [];
 
+  layers = { caudales: false };
+
+  private tramoEstacionMap = new Map<number, UltimaLecturaCaudalDTO | null>();
+
   constructor(
     private caudalesService: CaudalesService,
     private cdr: ChangeDetectorRef) {
   }
 
-
   ngOnInit() {
+    this.layers.caudales = true;
     this.loadCaudales();
   }
 
@@ -43,6 +45,9 @@ export class CaudalComponent implements OnInit {
     fetch('assets/red_hidrografica.geojson')
       .then(response => response.json())
       .then(data => {
+        
+        this.preComputeTramoEstacionMap(data.features);
+
         this.redHidroGraficaLayer = L.geoJSON(data, {
           style: (feature) => {
             const color = this.getColorParaTramo(feature);
@@ -72,7 +77,41 @@ export class CaudalComponent implements OnInit {
       });
   }
 
+  private preComputeTramoEstacionMap(features: any[]) {
+    const MAX_KM = 5;
+
+    features.forEach((feature, idx) => {
+      feature.properties._idx = idx;
+
+      const coords: number[][] = feature.geometry?.coordinates ?? [];
+      if (coords.length === 0) {
+        this.tramoEstacionMap.set(idx, null);
+        return;
+      }
+
+      let closest: UltimaLecturaCaudalDTO | null = null;
+      let minDist = Infinity;
+
+      const step = Math.max(1, Math.floor(coords.length / 20));
+
+      for (let i = 0; i < coords.length; i += step) {
+        const [lng, lat] = coords[i];
+        for (const estacion of this.caudales) {
+          const dist = this.haversine(lat, lng, estacion.latitud, estacion.longitud);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = estacion;
+          }
+        }
+      }
+
+      this.tramoEstacionMap.set(idx, minDist <= MAX_KM ? closest: null);
+
+    });
+  }
+
   ngOnDestroy() {
+    this.layers.caudales = false;
     if (this.redHidroGraficaLayer) {
       this.mapa.removeLayer(this.redHidroGraficaLayer);
     }
@@ -115,17 +154,18 @@ export class CaudalComponent implements OnInit {
   }
 
   private getColorPorPorcentaje(porcentajeNivel: number): string {
-    if (porcentajeNivel <= 0) return '#444444';
-    if (porcentajeNivel <= 10) return '#66ccff';
-    if (porcentajeNivel <= 20) return '#0099ff';
-    if (porcentajeNivel <= 40) return '#0055ff';
-    if (porcentajeNivel <= 60) return '#0000cc';
-    if (porcentajeNivel <= 80) return '#ffea00';
+    if (porcentajeNivel <= 0) return '#bcbcbcb3';
+    if (porcentajeNivel > 0 && porcentajeNivel <= 20) return '#9cdeff';
+    if (porcentajeNivel >= 20 && porcentajeNivel <= 35) return '#0099ff';
+    if (porcentajeNivel <= 35 && porcentajeNivel <= 50) return '#0055ff';
+    if (porcentajeNivel <= 50 && porcentajeNivel <= 65) return '#0000cc';
+    if (porcentajeNivel <= 65 && porcentajeNivel <= 90) return '#ffea00';
+    if (porcentajeNivel <= 90 && porcentajeNivel <= 100) return '#ff4444';
     return '#ff4444';
   }
 
   private getColorParaTramo(feature: any): string {
-    const cauce = this.getCauceMasCercano(feature, 5);
+    const cauce = this.tramoEstacionMap.get(feature.properties._idx) ?? null;
     if (!cauce) return '#444444';
     return this.getColorPorPorcentaje(cauce.porcentajeNivel);
   }
@@ -133,18 +173,30 @@ export class CaudalComponent implements OnInit {
   private getCauceMasCercano(feature: any, maxKm: number): UltimaLecturaCaudalDTO | null {
     const coords: number[][] = feature.geometry.coordinates;
 
-    const mid = coords[Math.floor(coords.length / 2)];
-    const tramLng = mid[0];
-    const tramLat = mid[1];
+    // FIX 2: Sample multiple points along the river segment (start, 25%, mid, 75%, end)
+    // instead of only the midpoint — avoids misses on long river segments
+    const sampleIndices = [
+      0,
+      Math.floor(coords.length * 0.25),
+      Math.floor(coords.length * 0.5),
+      Math.floor(coords.length * 0.75),
+      coords.length - 1,
+    ];
 
     let closest: UltimaLecturaCaudalDTO | null = null;
     let minDist = Infinity;
 
-    for (const cauce of this.caudales) {
-      const dist = this.haversine(tramLat, tramLng, cauce.latitud, cauce.longitud);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = cauce;
+    for (const idx of sampleIndices) {
+      const point = coords[idx];
+      const tramLng = point[0];
+      const tramLat = point[1];
+
+      for (const cauce of this.caudales) {
+        const dist = this.haversine(tramLat, tramLng, cauce.latitud, cauce.longitud);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = cauce;
+        }
       }
     }
     return minDist <= maxKm ? closest : null;
