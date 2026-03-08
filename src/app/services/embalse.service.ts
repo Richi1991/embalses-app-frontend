@@ -57,7 +57,7 @@ export class EmbalseService {
   }
 
     // Obtiene datos de la tabla historico_cuenca_diario (Últimos 7 días detallados)
-  getHistoricoCuencaSeguraDiaro(): Observable<HistoricoCuenca[]> {
+  getHistoricoCuencaSeguraDiario(): Observable<HistoricoCuenca[]> {
     if (this.cacheHistoricoDiario) return of(this.cacheHistoricoDiario);
 
     return this.http.get<HistoricoCuenca[]>(this.apiUrlHistoricoCuencaDiario).pipe(

@@ -25,7 +25,7 @@
       </button>
 
       <div class="map-stats" [class.panel-open]="panelOpen">
-        <ng-container *ngIf="activeTab === 'embalses' || !layers.estaciones">
+        <ng-container *ngIf="layers.embalses">
           <div class="stat-pill">
             <span class="stat-label">Vol. Total</span>
             <span class="stat-value green">{{ totalVol | number:'1.1-1' }} hm³</span>
@@ -54,7 +54,7 @@
         </ng-container>
       </div>
 
-      <div class="period-bar" *ngIf="layers.estaciones && activeTab === 'estaciones'">
+      <div class="period-bar" *ngIf="layers.estaciones">
         <span class="period-bar-label">Período</span>
         <div class="period-selector">
           <button *ngFor="let p of periods" 

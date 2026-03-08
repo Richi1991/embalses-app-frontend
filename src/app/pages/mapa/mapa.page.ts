@@ -4,7 +4,8 @@ import {
   NgZone, ChangeDetectorRef, HostBinding
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { EmbalseService, Embalse } from '../../services/embalse.service';
+import { forkJoin } from 'rxjs';
+import { EmbalseService, Embalse, HistoricoCuenca } from '../../services/embalse.service';
 import { EstacionesService, Estacion, PrecipitacionAcumulada } from '../../services/estaciones.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -39,10 +40,12 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   private estacionLayer!: L.LayerGroup;
   private precipitacionAcumulada: PrecipitacionAcumulada[] = [];
   public mostrarCaudales = false;
+  private capacidadMaximaEmbalsesCHS = 1140;
 
   // State — embalses
   embalses: Embalse[] = [];
   filteredEmbalses: Embalse[] = [];
+  historicoDiario: HistoricoCuenca[] = [];
   selectedEmbalse: Embalse | null = null;
 
   // State — estaciones
@@ -100,12 +103,18 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   // ── DATA ───────────────────────────────────────────────────
   private loadEmbalses() {
-    this.embalseService.getEmbalsesLastValueAndPosition().subscribe(data => {
-      this.embalses = data.sort((a, b) => b.porcentaje - a.porcentaje);
-      this.filteredEmbalses = [...this.embalses];
-      this.calcKpis();
-      if (this.map) this.renderEmbalseMarkers();
-      this.cdr.detectChanges();
+    forkJoin({
+        embalses: this.embalseService.getEmbalsesLastValueAndPosition(),
+        historicoDiario: this.embalseService.getHistoricoCuencaSeguraDiario(),
+    }).subscribe({
+      next: ({ embalses, historicoDiario }) => {
+        this.embalses = embalses.sort((a, b) => b.porcentaje - a.porcentaje);
+        this.historicoDiario = historicoDiario;
+        this.filteredEmbalses = [...this.embalses];
+        this.calcKpis();
+        if (this.map) this.renderEmbalseMarkers();
+        this.cdr.detectChanges();
+      } 
     });
   }
 
@@ -131,9 +140,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private calcKpis() {
-    this.totalVol = this.embalses.reduce((s, e) => s + e.hm3, 0);
-    const totalCap = this.embalses.reduce((s, e) => s + e.capacidadMaximaEmbalse, 0);
-    this.totalPct = totalCap > 0 ? (this.totalVol / totalCap) * 100 : 0;
+    this.totalVol = this.historicoDiario.at(-1)?.volumenTotal ?? 0;
+    this.totalPct = (this.totalVol / this.capacidadMaximaEmbalsesCHS) * 100;
   }
 
   // ── MAP ────────────────────────────────────────────────────
@@ -179,7 +187,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     this.embalses.forEach(e => {
       const color = this.getPctColor(e.porcentaje);
       const bg = this.getPctBg(e.porcentaje);
-      const size = this.getMarkerSize(36);
+      const size = this.getMarkerSize(32);
 
       const icon = L.divIcon({
         html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:${Math.max(7, Math.round(size * 0.25))}px;font-weight:700;backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,0.45);cursor:pointer;">${e.porcentaje.toFixed(0)}%</div>`,
@@ -224,19 +232,21 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       const precipColor = this.getPrecipitationColorHistorico(precip, this.activePeriod);
 
       const sz = this.getMarkerSize(18);
+      const szFinal = precip > 0 ? sz : Math.round(sz * 0.2); // ← mitad de tamaño si no hay lluvia
+
       const icon = L.divIcon({
         html: `<div style="
-                width:${sz}px;height:${sz}px;border-radius:3px;
+                width:${szFinal}px;height:${szFinal}px;border-radius:1px;
                 background:rgba(0,153,255,0.15);
                 border:1px solid ${precipColor};
                 color:${precipColor};
                 display:flex;align-items:center;justify-content:center;
                 font-family:'JetBrains Mono',monospace;
-                font-size:${Math.max(6, Math.round(sz * 0.38))}px;font-weight:700;
+                font-size:${Math.max(6, Math.round(szFinal * 0.38))}px;font-weight:700;
                 box-shadow:0 1px 4px rgba(0,0,0,0.35);
                 cursor:pointer;
-              ">${precip > 0 ? precip.toFixed(0) : '—'}</div>`,
-        iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2], className: '',
+              ">${precip > 0 ? precip.toFixed(1) : '—'}</div>`,
+        iconSize: [szFinal, szFinal], iconAnchor: [szFinal / 2, szFinal / 2], className: '',
       });
 
       const popupText = this.lightMode ? '#1a2535' : '#e8edf5';
@@ -282,19 +292,21 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       const precipColor = this.getPrecipitationColorHistorico(precip, this.activePeriod);
 
       const sz = this.getMarkerSize(18);
+      const szFinal = precip > 0 ? sz : Math.round(sz * 0.2); // ← mitad de tamaño si no hay lluvia
+
       const icon = L.divIcon({
         html: `<div style="
-                width:${sz}px;height:${sz}px;border-radius:3px;
+                width:${szFinal}px;height:${szFinal}px;border-radius:1px;
                 background:rgba(0,153,255,0.15);
                 border:1px solid ${precipColor};
                 color:${precipColor};
                 display:flex;align-items:center;justify-content:center;
                 font-family:'JetBrains Mono',monospace;
-                font-size:${Math.max(6, Math.round(sz * 0.38))}px;font-weight:700;
+                font-size:${Math.max(6, Math.round(szFinal * 0.38))}px;font-weight:700;
                 box-shadow:0 1px 4px rgba(0,0,0,0.35);
                 cursor:pointer;
-              ">${precip > 0 ? precip.toFixed(0) : '—'}</div>`,
-        iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2], className: '',
+              ">${precip > 0 ? precip.toFixed(1) : '—'}</div>`,
+        iconSize: [szFinal, szFinal], iconAnchor: [szFinal / 2, szFinal / 2], className: '',
       });
 
       const popupText = this.lightMode ? '#1a2535' : '#e8edf5';
@@ -340,7 +352,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   private obtenerEscalasAndColores() {
     const escalas: Record<string, number[]> = {
-      "ULTIMO_DIA": [100, 80, 70, 60, 50, 40, 30, 20, 10, 5, 1, 0.1, 0],
+      "ULTIMO_DIA": [100, 80, 70, 50, 30, 20, 15, 10, 5, 2, 1, 0.1, 0],
       "ULTIMA_SEMANA": [150, 125, 100, 85, 75, 60, 50, 30, 20, 10, 5, 1, 0],
       "ULTIMAS_DOS_SEMANAS": [200, 150, 130, 100, 80, 60, 50, 30, 20, 10, 5, 1, 0],
       "ULTIMO_MES": [200, 160, 130, 110, 90, 70, 50, 30, 20, 10, 5, 1, 0],
@@ -374,7 +386,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     this.selectedEstacion = null;
     if (!this.panelOpen) this.panelOpen = true;
     this.activeTab = 'embalses';
-    this.map.flyTo([embalse.latitud, embalse.longitud], 12, { duration: 1.2 });
   }
 
   openDetailEstacion(estacion: Estacion) {
@@ -384,7 +395,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     this.activeTab = 'estaciones';
     const lat = parseFloat(estacion.latitud);
     const lng = parseFloat(estacion.longitud);
-    if (!isNaN(lat) && !isNaN(lng)) this.map.flyTo([lat, lng], 13, { duration: 1.2 });
   }
 
   openDetailEstacionHistorica(precipAcu: PrecipitacionAcumulada) {
@@ -393,7 +403,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     this.activeTab = 'estaciones';
     const lat = parseFloat(precipAcu.latitud);
     const lng = parseFloat(precipAcu.longitud);
-    if (!isNaN(lat) && !isNaN(lng)) this.map.flyTo([lat, lng], 13, { duration: 1.2 });
   }
 
   openDetail(embalse: Embalse) { this.openDetailEmbalse(embalse); }
@@ -470,29 +479,23 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   cargarEstacionesDesdeBotoneraTiempo(period: string) {
-    this.estacionesService.getHistoricoPrecipitaciones(period).subscribe({
-      next: (data) => {
-        this.precipitacionAcumulada = data.filter(e => e.indicativo && e.nombre && e.valorAcumulado);
-        this.estacionesLoaded = true;
-        this.activePeriod = period;
-        this.loadingEstaciones = false;
-        this.sonDatosEstacionesHistoricas = true;
-        if (this.map && period !== 'ULTIMO DIA') this.renderEstacionMarkersHistoricas();
-        this.cdr.detectChanges();
-        if (this.map && period === 'ULTIMO DIA') this.renderEstacionMarkers();
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  onSearch() {
-    const q = this.searchQuery.toLowerCase();
-    if (this.activeTab === 'embalses') {
-      this.filteredEmbalses = this.embalses.filter(e => e.nombre.toLowerCase().includes(q));
-    } else {
-      this.filteredEstaciones = this.estaciones.filter(e =>
-        e.nombre.toLowerCase().includes(q) || e.provincia.toLowerCase().includes(q)
-      );
+    if (this.map && period !== 'ULTIMO_DIA'){
+      this.sonDatosEstacionesHistoricas = true;
+      this.estacionesService.getHistoricoPrecipitaciones(period).subscribe({
+        next: (data) => {
+          this.precipitacionAcumulada = data.filter(e => e.indicativo && e.nombre && e.valorAcumulado);
+          this.estacionesLoaded = true;
+          this.activePeriod = period;
+          this.loadingEstaciones = false;
+          this.renderEstacionMarkersHistoricas();
+          this.cdr.detectChanges();
+        }
+      });
+    } else if (this.map && period === 'ULTIMO_DIA') {
+      this.activePeriod = period;
+      this.sonDatosEstacionesHistoricas = false;
+      this.renderEstacionMarkers();
+      this.cdr.detectChanges();
     }
   }
 

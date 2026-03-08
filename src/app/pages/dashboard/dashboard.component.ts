@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { interval, Subscription, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { EmbalseService } from '../../services/embalse.service';
 import { Embalse, TopMovimiento } from '../../models/embalse.model';
 import { HistoricoCuenca } from '../../models/historico.model';
@@ -114,7 +114,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       embalses: this.embalseService.getEmbalsesLastValueAndPosition(),
       topSubidas: this.embalseService.getTopMovimientos('1day'),
       historico: this.embalseService.getHistoricoCuencaSegura(),
-      historicoDiario: this.embalseService.getHistoricoCuencaSeguraDiaro(),
+      historicoDiario: this.embalseService.getHistoricoCuencaSeguraDiario(),
     }).subscribe({
       next: ({ embalses, topSubidas, historico, historicoDiario }) => {
         this.embalses = embalses.sort((a, b) => b.porcentaje - a.porcentaje);
