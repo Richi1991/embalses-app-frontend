@@ -150,7 +150,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) { setTimeout(() => this.initMap(), 200); return; }
 
-    this.map = L.map('map', { center: [38.1, -1.5], zoom: 9, zoomControl: true, attributionControl: false });
+    this.map = L.map('map', { center: [38.1, -1.5], zoom: 8, zoomControl: true, attributionControl: false });
 
     // dark_nolabels: sin cuadrícula de líneas blancas, fondo muy oscuro con detalle
     const darkTile = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
@@ -352,7 +352,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   private obtenerEscalasAndColores() {
     const escalas: Record<string, number[]> = {
-      "ULTIMO_DIA": [100, 80, 70, 50, 30, 20, 15, 10, 5, 2, 1, 0.1, 0],
+      "ULTIMO_DIA": [100, 80, 70, 50, 30, 15, 10, 5, 2, 1, 0.5, 0.1, 0],
       "ULTIMA_SEMANA": [150, 125, 100, 85, 75, 60, 50, 30, 20, 10, 5, 1, 0],
       "ULTIMAS_DOS_SEMANAS": [200, 150, 130, 100, 80, 60, 50, 30, 20, 10, 5, 1, 0],
       "ULTIMO_MES": [200, 160, 130, 110, 90, 70, 50, 30, 20, 10, 5, 1, 0],
